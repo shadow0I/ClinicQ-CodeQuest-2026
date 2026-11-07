@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ClinicQ — Queue Prediction & Crowd Management Engine</title>
+  <title>ClinicQ — Live Outpatient Queue & Wait-Time Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #eef3f1; color: #1e2d2b; }
+    body { font-family: 'Inter', sans-serif; background-color: #f3f7f5; color: #162624; }
     h1, h2, h3, h4, .font-display { font-family: 'Plus Jakarta Sans', sans-serif; }
     .font-mono-code { font-family: 'JetBrains Mono', monospace; }
     @keyframes pulseRed {
@@ -20,481 +20,1171 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- TOP NAVIGATION BAR -->
-  <header class="bg-[#1e2d2b] text-[#f4f8f6] border-b border-[#36524e] sticky top-0 z-30 shadow-md">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-[#2e6f65] border border-[#84c5b8]/40 flex items-center justify-center text-white font-display font-extrabold text-xl shadow-inner">
+  <!-- ===================================================================== -->
+  <!-- TOP PRODUCTION HEADER                                                 -->
+  <!-- ===================================================================== -->
+  <header class="bg-[#162624] text-[#f4f8f6] border-b border-[#2b4440] sticky top-0 z-30 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between gap-3">
+      <a href="/" onclick="goHome(event)" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-[#246a5e] border border-[#7bc4b5]/40 flex items-center justify-center text-white font-display font-extrabold text-xl shadow-inner group-hover:bg-[#2c7d6f] transition">
           Q
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <span class="font-display font-extrabold text-xl tracking-tight">ClinicQ</span>
-            <span class="text-[11px] font-mono-code uppercase bg-[#2e6f65] text-[#cbe5df] px-2 py-0.5 rounded font-semibold">Live Cloud MVP</span>
-            <span class="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-mono-code text-[#84c5b8] bg-[#263936] px-2 py-0.5 rounded border border-[#3d5a55]">
-              <span class="w-2 h-2 rounded-full bg-[#4ade80] animate-ping"></span> Auto-Sync Active
+            <span class="font-display font-extrabold text-xl tracking-tight text-white">ClinicQ</span>
+            <span class="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-mono-code text-[#84c5b8] bg-[#1f3532] px-2.5 py-0.5 rounded-full border border-[#34544f]">
+              <span class="w-2 h-2 rounded-full bg-[#4ade80]"></span> Live OPD Network
             </span>
           </div>
-          <p class="text-xs text-[#a3bdb7]">Team CodeBlooded • Lokesh Sharma, Shubham Garg, Parveen Kumar</p>
+          <p class="text-xs text-[#9cb8b2]">Smart Queue Prediction &amp; Crowd Management System</p>
         </div>
-      </div>
+      </a>
 
-      <!-- View Switcher Tabs -->
-      <div class="flex items-center gap-1.5 bg-[#263936] p-1 rounded-xl border border-[#3d5a55]">
-        <button onclick="setViewMode('split')" id="tab-split" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#84c5b8] text-[#1e2d2b] transition">
-          <i class="fa-solid fa-table-columns mr-1"></i> Split View
+      <!-- Portal Mode Navigation -->
+      <div class="flex items-center gap-2.5">
+        <button id="nav-btn-patient" onclick="switchPortal('patient')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#84c5b8] text-[#162624] transition">
+          <i class="fa-solid fa-hospital-user mr-1.5"></i> Patient Portal
         </button>
-        <button onclick="setViewMode('patient')" id="tab-patient" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#cbe5df] hover:bg-[#314945] transition">
-          <i class="fa-solid fa-mobile-screen mr-1"></i> Patient App
-        </button>
-        <button onclick="setViewMode('staff')" id="tab-staff" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#cbe5df] hover:bg-[#314945] transition">
-          <i class="fa-solid fa-user-doctor mr-1"></i> Staff Deck
-        </button>
-        <button onclick="setViewMode('pilot')" id="tab-pilot" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#cbe5df] hover:bg-[#314945] transition">
-          <i class="fa-solid fa-chart-column mr-1"></i> Pilot KPIs
-        </button>
-      </div>
-
-      <!-- Action Buttons: QR Poster & Reset -->
-      <div class="flex items-center gap-2">
-        <button onclick="toggleQRModal(true)" class="text-xs font-semibold bg-[#2e6f65] hover:bg-[#398478] text-white px-3 py-1.5 rounded-lg border border-[#84c5b8]/40 transition">
-          <i class="fa-solid fa-qrcode mr-1"></i> Clinic Wall QR Poster
-        </button>
-        <button onclick="resetDemo()" class="text-xs font-mono-code bg-[#263936] hover:bg-[#334d49] text-[#cbe5df] px-3 py-1.5 rounded-lg border border-[#4a6b65] transition">
-          <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+        <button id="nav-btn-staff" onclick="switchPortal('staff')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#213835] hover:bg-[#2c4743] text-[#d2e7e2] border border-[#385a55] transition">
+          <i class="fa-solid fa-user-doctor mr-1.5"></i> Clinic Staff Login
         </button>
       </div>
     </div>
   </header>
 
-  <!-- LIVE CROWD REDUCTION SUMMARY RIBBON -->
-  <div class="bg-[#e4efec] border-b border-[#c8ddd7]">
-    <div class="max-w-7xl mx-auto px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
-      <div class="flex items-center gap-4">
-        <span class="font-semibold text-[#1e4d45]">
-          <i class="fa-solid fa-hospital-user mr-1"></i> Total Active Queue: <b id="ribbon-total-waiting">6</b> patients
-        </span>
-        <span class="text-[#2e6f65] font-semibold">
-          <i class="fa-solid fa-chair mr-1"></i> Inside Waiting Room Now: <b id="ribbon-inside-now">4</b> (3-Token Buffer)
-        </span>
-        <span class="hidden md:inline text-[#415653]">
-          <i class="fa-solid fa-house-laptop mr-1"></i> Safely Waiting Outside/Home: <b id="ribbon-outside-now">3</b>
-        </span>
+  <!-- ===================================================================== -->
+  <!-- PORTAL 1: PATIENT PORTAL (STEP 1 -> STEP 2 -> STEP 3 LIVE QUEUE)      -->
+  <!-- ===================================================================== -->
+  <main id="portal-patient" class="flex-grow flex flex-col justify-center py-8 px-4">
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- PATIENT STEP 1: SCAN QR OR ENTER CLINIC UNIQUE CODE                 -->
+    <!-- ------------------------------------------------------------------- -->
+    <section id="patient-step-1" class="max-w-xl w-full mx-auto bg-white rounded-3xl border border-[#d8e6e2] shadow-sm overflow-hidden">
+      <div class="bg-[#162624] text-white px-7 py-6">
+        <span class="font-mono-code text-xs text-[#84c5b8] uppercase tracking-wider">STEP 1 OF 2 • SELECT HEALTHCARE FACILITY</span>
+        <h1 class="font-display font-extrabold text-2xl sm:text-3xl mt-1">Connect to Your Clinic</h1>
+        <p class="text-xs sm:text-sm text-[#a8c5be] mt-1">Scan the ClinicQ poster at the reception desk or enter the Clinic Unique ID printed on your slip.</p>
       </div>
-      <div class="font-mono-code text-[11px] text-[#2e6f65]">
-        Formula: Wait = Remaining Current + ∑(Expected Ahead × Visit Factor) + Delay Offset
+
+      <div class="p-7 space-y-6">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-[#3b5450] mb-2">
+            Enter Clinic Unique Code
+          </label>
+          <div class="flex gap-2.5">
+            <input
+              id="patient-clinic-code-input"
+              type="text"
+              placeholder="e.g. CLINIC-101"
+              value="CLINIC-101"
+              class="flex-1 font-mono-code font-bold text-base uppercase bg-[#f7faf9] border-2 border-[#c7dbd6] focus:border-[#246a5e] focus:bg-white rounded-xl px-4 py-3 outline-none transition"
+            />
+            <button
+              onclick="verifyClinicStep1()"
+              class="bg-[#246a5e] hover:bg-[#1c544a] text-white font-display font-bold text-sm px-6 py-3 rounded-xl transition shadow-sm whitespace-nowrap"
+            >
+              Continue <i class="fa-solid fa-arrow-right ml-1.5"></i>
+            </button>
+          </div>
+          <p id="patient-step1-error" class="hidden text-xs font-semibold text-[#b91c1c] mt-2"></p>
+        </div>
+
+        <!-- Active Partner Clinics Directory -->
+        <div class="pt-4 border-t border-[#e4eeeb]">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#4b6762]">Active Partner Clinics Online</span>
+            <span class="text-[11px] text-[#64748b]">Tap to autofill</span>
+          </div>
+          <div id="public-clinics-list" class="space-y-2.5">
+            <!-- Populated dynamically from /api/clinics -->
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
+    </section>
 
-  <!-- MAIN WORKSPACE -->
-  <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-grow">
+    <!-- ------------------------------------------------------------------- -->
+    <!-- PATIENT STEP 2: ENTER TOKEN NUMBER ISSUED AT RECEPTION              -->
+    <!-- ------------------------------------------------------------------- -->
+    <section id="patient-step-2" class="hidden max-w-xl w-full mx-auto bg-white rounded-3xl border border-[#d8e6e2] shadow-sm overflow-hidden">
+      <div class="bg-[#162624] text-white px-7 py-6">
+        <div class="flex items-center justify-between">
+          <span class="font-mono-code text-xs text-[#84c5b8] uppercase tracking-wider">STEP 2 OF 2 • VERIFY TOKEN SLIP</span>
+          <button onclick="backToPatientStep1()" class="text-xs text-[#a8c5be] hover:text-white underline">
+            <i class="fa-solid fa-chevron-left mr-1"></i> Change Clinic
+          </button>
+        </div>
+        <h2 id="step2-clinic-name" class="font-display font-extrabold text-2xl mt-1">City Care Polyclinic</h2>
+        <p id="step2-doctor-name" class="text-xs sm:text-sm text-[#a8c5be] mt-0.5">Dr. Rajesh Sharma • General Medicine</p>
+      </div>
 
-    <div id="main-grid" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
-      <!-- =============================================================== -->
-      <!-- LEFT PANEL: PATIENT MOBILE VIEW (<25KB PWA INTERFACE)           -->
-      <!-- =============================================================== -->
-      <section id="panel-patient" class="lg:col-span-5 bg-white rounded-2xl border border-[#dce8e4] shadow-sm overflow-hidden">
-        <div class="bg-[#1e2d2b] text-white px-5 py-4 flex items-center justify-between">
+      <div class="p-7 space-y-6">
+        <div class="bg-[#f3f8f6] border border-[#cfe2dd] rounded-2xl p-4 flex items-center justify-between">
           <div>
-            <div class="flex items-center gap-2">
-              <span class="font-mono-code text-[10px] bg-[#2e6f65] text-[#cbe5df] px-2 py-0.5 rounded uppercase">Patient PWA (&lt;25KB)</span>
-              <span class="text-[11px] text-[#84c5b8] font-mono-code">No App Install</span>
-            </div>
-            <h2 class="font-display font-bold text-base mt-1" id="ui-clinic-name">City Care Polyclinic — Dr. Sharma</h2>
+            <p class="text-[11px] font-mono-code uppercase text-[#3b5450]">CURRENTLY INSIDE DOCTOR CABIN</p>
+            <p id="step2-ongoing-token" class="font-display font-extrabold text-2xl text-[#1b5e3a] mt-0.5">Token #3</p>
           </div>
           <div class="text-right">
-            <span class="font-mono-code text-[11px] bg-[#263936] border border-[#4a6b65] text-[#84c5b8] px-2.5 py-1 rounded-md block">
-              Code: CLINIC-101
-            </span>
+            <p class="text-[11px] font-mono-code uppercase text-[#3b5450]">CLINIC CODE</p>
+            <span id="step2-clinic-code-badge" class="font-mono-code font-bold text-sm bg-white border border-[#b9d3cc] text-[#162624] px-3 py-1 rounded-lg inline-block mt-0.5">CLINIC-101</span>
           </div>
         </div>
 
-        <div class="p-4 space-y-4">
-
-          <!-- STEP 1: Switch Token OR Register New Walk-In Token by Visit Type -->
-          <div class="bg-[#f6faf8] border border-[#dce8e4] rounded-xl p-3.5 space-y-2.5">
-            <div class="flex items-center justify-between">
-              <span class="font-mono-code text-xs font-bold text-[#2e6f65]">STEP 1: TRACK TOKEN OR CHECK IN</span>
-              <select id="select-my-token" onchange="changeMyToken()" class="text-xs font-bold bg-white border border-[#2e6f65] text-[#1e2d2b] rounded-lg px-2.5 py-1">
-                <option value="4" selected>Tracking: Token #4 (Lokesh S.)</option>
-                <option value="5">Tracking: Token #5 (M. Devi)</option>
-                <option value="6">Tracking: Token #6 (K. Patel)</option>
-                <option value="7">Tracking: Token #7 (B. Singh)</option>
-                <option value="8">Tracking: Token #8 (P. Joshi)</option>
-              </select>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-[#3b5450] mb-2">
+            Enter Your Token Number (From Reception Slip)
+          </label>
+          <div class="flex gap-3">
+            <div class="relative flex-1">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 font-mono-code font-bold text-lg text-[#64748b]">#</span>
+              <input
+                id="patient-token-input"
+                type="number"
+                min="1"
+                max="500"
+                value="4"
+                placeholder="4"
+                class="w-full font-mono-code font-extrabold text-2xl bg-[#f7faf9] border-2 border-[#c7dbd6] focus:border-[#246a5e] focus:bg-white rounded-xl pl-9 pr-4 py-3 outline-none transition"
+              />
             </div>
+            <button
+              onclick="verifyTokenStep2()"
+              class="bg-[#246a5e] hover:bg-[#1c544a] text-white font-display font-bold text-sm px-6 py-3 rounded-xl transition shadow-sm"
+            >
+              Track My Turn <i class="fa-solid fa-arrow-right ml-1.5"></i>
+            </button>
+          </div>
+          <p id="patient-step2-error" class="hidden text-xs font-semibold text-[#b91c1c] mt-2"></p>
+        </div>
 
-            <!-- Add New Patient with Visit Type (Slide 4 input) -->
-            <div class="pt-2 border-t border-[#e2ece9]">
-              <p class="text-[11px] text-[#415653] mb-1.5 font-medium">New Walk-In? Enter Clinic Code &amp; Visit Type:</p>
-              <div class="grid grid-cols-12 gap-1.5">
-                <input id="input-clinic-code" type="text" value="CLINIC-101" placeholder="Code" class="col-span-3 text-xs font-mono-code bg-white border border-[#cbd5e1] rounded-lg px-2 py-1.5 uppercase" />
-                <input id="input-patient-name" type="text" placeholder="Your Name" class="col-span-4 text-xs bg-white border border-[#cbd5e1] rounded-lg px-2 py-1.5" />
-                <select id="input-visit-type" class="col-span-5 text-xs bg-white border border-[#cbd5e1] rounded-lg px-1.5 py-1.5">
-                  <option value="General Checkup">General Checkup (~10m)</option>
-                  <option value="Follow-up / Report">Follow-up / Report (~7m)</option>
-                  <option value="Detailed Consultation">Detailed Visit (~14m)</option>
-                </select>
-              </div>
-              <button onclick="joinNewToken()" class="mt-2 w-full text-xs bg-[#2e6f65] hover:bg-[#23574f] text-white font-semibold rounded-lg py-2 transition shadow-sm">
-                <i class="fa-solid fa-ticket mr-1"></i> Issue New Token &amp; Calculate Forecast
-              </button>
+        <!-- Quick Tap Active Tokens in Queue -->
+        <div class="pt-4 border-t border-[#e4eeeb]">
+          <p class="text-xs font-bold uppercase tracking-wider text-[#4b6762] mb-2.5">
+            Or Tap Your Active Token Number Below:
+          </p>
+          <div id="step2-token-grid" class="flex flex-wrap gap-2">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- PATIENT STEP 3: PERSONAL LIVE QUEUE & COUNTER DETAILS DASHBOARD     -->
+    <!-- ------------------------------------------------------------------- -->
+    <section id="patient-step-3" class="hidden max-w-4xl w-full mx-auto space-y-5">
+
+      <!-- Top Clinic & Navigation Strip -->
+      <div class="bg-[#162624] text-white rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="p3-clinic-code" class="font-mono-code text-xs font-bold bg-[#246a5e] text-[#d2f0e9] px-2.5 py-0.5 rounded">CLINIC-101</span>
+            <span class="text-xs text-[#84c5b8] font-mono-code">• Live Sync Every 2.5s</span>
+          </div>
+          <h2 id="p3-clinic-name" class="font-display font-extrabold text-xl sm:text-2xl mt-1">City Care Polyclinic</h2>
+          <p id="p3-doctor-name" class="text-xs text-[#a8c5be]">Dr. Rajesh Sharma (MD, Internal Medicine) • 14 Civil Lines Medical Square</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="backToPatientStep2()" class="text-xs font-semibold bg-[#213835] hover:bg-[#2c4743] text-[#d2e7e2] border border-[#385a55] px-3.5 py-2 rounded-xl transition">
+            <i class="fa-solid fa-ticket mr-1"></i> Switch Token #
+          </button>
+          <button onclick="backToPatientStep1()" class="text-xs font-semibold bg-[#213835] hover:bg-[#2c4743] text-[#d2e7e2] border border-[#385a55] px-3.5 py-2 rounded-xl transition">
+            <i class="fa-solid fa-hospital mr-1"></i> Change Clinic
+          </button>
+        </div>
+      </div>
+
+      <!-- INCOMING AUTOMATED VOICE CALL (IVR) BANNER IF TRIGGERED FOR THIS PATIENT -->
+      <div id="patient-ivr-alert" class="hidden bg-[#162624] text-white rounded-2xl border-2 border-[#84c5b8] p-5 shadow-lg">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#2b4440]">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-full bg-[#246a5e] flex items-center justify-center animate-pulse">
+              <i class="fa-solid fa-phone-volume text-[#84c5b8] text-lg"></i>
+            </div>
+            <div>
+              <span class="font-mono-code text-[11px] text-[#84c5b8] uppercase">INCOMING AUTOMATED CLINICQ CALL &amp; SMS</span>
+              <h3 class="font-display font-bold text-lg">Reception Desk is Confirming Your Arrival</h3>
             </div>
           </div>
+          <button onclick="speakActiveIVR()" class="text-xs bg-[#213835] hover:bg-[#2c4743] border border-[#4a6b65] px-3 py-1.5 rounded-lg">
+            <i class="fa-solid fa-volume-high mr-1"></i> Listen to Voice Prompt
+          </button>
+        </div>
+        <p class="text-xs text-[#cbe5df] mt-3 font-mono-code bg-[#1f3532] p-3 rounded-xl border border-[#34544f]">
+          "Hello from ClinicQ. Your consultation turn is approaching. Are you coming to the clinic? Press 1 if you are outside, Press 2 if delayed to shift to a free buffer slot, or Press 9 to cancel your token."
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+          <button onclick="respondIVR('1')" class="bg-[#213835] hover:bg-[#2c4743] border border-[#84c5b8] rounded-xl p-3 text-left transition">
+            <span class="font-mono-code text-xs font-bold text-[#84c5b8] block">PRESS 1 — ARRIVING</span>
+            <span class="text-xs text-white mt-0.5 block">I am at the clinic gate</span>
+          </button>
+          <button onclick="respondIVR('2')" class="bg-[#fef6e6] hover:bg-[#fcecd0] text-[#8a5a00] border-2 border-[#d99b26] rounded-xl p-3 text-left transition">
+            <span class="font-mono-code text-xs font-bold block">OPTION A (PRESS 2)</span>
+            <span class="text-xs font-bold mt-0.5 block">Delayed → Shift to Free Slot</span>
+          </button>
+          <button onclick="respondIVR('9')" class="bg-[#fdecec] hover:bg-[#f9dada] text-[#9e2a2b] border-2 border-[#d97777] rounded-xl p-3 text-left transition">
+            <span class="font-mono-code text-xs font-bold block">OPTION B (PRESS 9)</span>
+            <span class="text-xs font-bold mt-0.5 block">Cancel &amp; Eliminate Token</span>
+          </button>
+        </div>
+      </div>
 
-          <!-- STEP 2: Dynamic 25th-75th Percentile Forecast Card -->
-          <div class="bg-[#f2f7f5] border-2 border-[#2e6f65] rounded-xl p-4 relative">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+        <!-- LEFT COLUMN: FORECAST + COUNTER REGISTRATION SLIP DETAILS -->
+        <div class="lg:col-span-5 space-y-5">
+
+          <!-- Live Wait Forecast Card -->
+          <div class="bg-white rounded-2xl border-2 border-[#246a5e] p-5 shadow-sm">
             <div class="flex items-center justify-between">
-              <span class="font-mono-code text-[11px] font-bold text-[#2e6f65] uppercase">STEP 2: YOUR LIVE FORECAST (25th–75th PCTL)</span>
-              <span id="ui-my-token-badge" class="font-mono-code text-xs font-bold bg-[#1d4ed8] text-white px-2.5 py-0.5 rounded shadow-sm">TOKEN #4</span>
+              <span class="font-mono-code text-xs font-bold text-[#246a5e] uppercase">YOUR LIVE WAIT FORECAST</span>
+              <span id="p3-token-badge" class="font-mono-code text-sm font-extrabold bg-[#1d4ed8] text-white px-3 py-0.5 rounded-lg">TOKEN #4</span>
             </div>
 
-            <div class="mt-2.5 flex items-baseline justify-between">
+            <div class="mt-4 flex items-baseline justify-between gap-2">
               <div>
-                <p class="text-[11px] text-[#415653] uppercase font-mono-code">ESTIMATED WAIT RANGE</p>
-                <p id="ui-wait-range" class="font-display font-extrabold text-3xl text-[#1e2d2b]">18–26 min</p>
+                <p class="text-[11px] font-mono-code uppercase text-[#526b67]">ESTIMATED WAIT (25th–75th PCTL)</p>
+                <p id="p3-wait-range" class="font-display font-extrabold text-3xl sm:text-4xl text-[#162624] mt-0.5">16–24 min</p>
               </div>
-              <div class="text-right bg-white px-3 py-1.5 rounded-lg border border-[#c8ddd7]">
-                <p class="text-[10px] font-mono-code uppercase text-[#415653]">COME BACK AT</p>
-                <p id="ui-come-back" class="font-display font-extrabold text-xl text-[#2e6f65]">11:40 AM</p>
+              <div class="text-right bg-[#f2f8f6] px-3.5 py-2 rounded-xl border border-[#c7dfd9]">
+                <p class="text-[10px] font-mono-code uppercase text-[#3b5450]">COME BACK BY</p>
+                <p id="p3-come-back" class="font-display font-extrabold text-xl text-[#246a5e]">10:35 AM</p>
               </div>
             </div>
 
-            <div class="mt-2.5 pt-2 border-t border-[#d8e8e3] flex items-center justify-between text-xs text-[#415653]">
-              <span id="ui-confidence"><i class="fa-solid fa-shield-halved text-[#2e6f65] mr-1"></i> High Confidence</span>
-              <span id="ui-my-visit-type" class="font-mono-code text-[11px] bg-white px-2 py-0.5 rounded border border-[#dce8e4]">General Checkup</span>
+            <div class="mt-4 pt-3 border-t border-[#e4eeeb] flex items-center justify-between text-xs text-[#415653]">
+              <span id="p3-patients-ahead" class="font-semibold">1 patient ahead of you</span>
+              <span id="p3-confidence" class="font-mono-code text-[11px] text-[#246a5e] font-semibold">High Confidence</span>
             </div>
 
-            <!-- 3-Token Proximity Wake-Lock Alarm Banner -->
-            <div id="ui-proximity-alarm" class="hidden mt-3 bg-[#fef6e6] border-2 border-[#d99b26] rounded-lg p-2.5 flex items-center justify-between">
-              <div class="flex items-center gap-2">
+            <!-- 3-Token Proximity Wake-Lock Alarm -->
+            <div id="p3-proximity-banner" class="hidden mt-4 bg-[#fef6e6] border-2 border-[#d99b26] rounded-xl p-3 flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
                 <i class="fa-solid fa-bell text-[#b86b35] animate-bounce text-base"></i>
                 <div>
-                  <p class="text-xs font-bold text-[#8a5a00]">3-Token Proximity Wake-Lock Alert!</p>
-                  <p class="text-[11px] text-[#8a5a00]">Your turn is near. Please walk back to the clinic.</p>
+                  <p class="text-xs font-bold text-[#8a5a00]">Your Turn is Approaching!</p>
+                  <p class="text-[11px] text-[#8a5a00]">Within 3-token buffer. Please walk back to the clinic.</p>
                 </div>
               </div>
-              <button onclick="playAlarmSound()" class="text-[11px] font-mono-code bg-[#b86b35] text-white px-2.5 py-1 rounded font-semibold">Ring</button>
+              <button onclick="playChime()" class="text-[11px] font-mono-code bg-[#b86b35] text-white px-2.5 py-1 rounded font-semibold">Test Alert</button>
             </div>
           </div>
 
-          <!-- STEP 3: Live Queue List with Green Ongoing, Inline Blinking Red Emergency, and Blue User Token -->
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-mono-code text-xs font-bold text-[#1e2d2b]">STEP 3: LIVE QUEUE STREAM</span>
-              <span id="ui-elapsed-badge" class="font-mono-code text-[11px] bg-[#e3f5ec] text-[#1b5e3a] px-2 py-0.5 rounded font-semibold">
-                Ongoing Visit: 3.0m elapsed
-              </span>
+          <!-- Counter Registration Details Card (All details given at counter) -->
+          <div class="bg-white rounded-2xl border border-[#d8e6e2] p-5 shadow-sm">
+            <div class="flex items-center justify-between pb-3 border-b border-[#e4eeeb]">
+              <div>
+                <span class="font-mono-code text-[11px] font-bold text-[#246a5e] uppercase">VERIFIED RECEPTION COUNTER SLIP</span>
+                <h3 class="font-display font-bold text-base text-[#162624]">Your Registered Visit Details</h3>
+              </div>
+              <i class="fa-solid fa-clipboard-user text-[#246a5e] text-xl"></i>
             </div>
-            <div id="ui-queue-list" class="space-y-2 max-h-[320px] overflow-y-auto pr-1">
-              <!-- Populated dynamically -->
-            </div>
+
+            <dl class="mt-3.5 space-y-2.5 text-xs">
+              <div class="flex justify-between py-1 border-b border-[#f1f5f4]">
+                <dt class="text-[#526b67] font-medium">Patient Name &amp; Age:</dt>
+                <dd id="p3-detail-name" class="font-bold text-[#162624] text-right">Lokesh Sharma (22 yrs)</dd>
+              </div>
+              <div class="flex justify-between py-1 border-b border-[#f1f5f4]">
+                <dt class="text-[#526b67] font-medium">Registered Phone:</dt>
+                <dd id="p3-detail-phone" class="font-mono-code font-semibold text-[#162624] text-right">+91 98765-43210</dd>
+              </div>
+              <div class="flex justify-between py-1 border-b border-[#f1f5f4]">
+                <dt class="text-[#526b67] font-medium">Consultation Type:</dt>
+                <dd id="p3-detail-vtype" class="font-semibold text-[#246a5e] text-right">General Checkup</dd>
+              </div>
+              <div class="flex justify-between py-1 border-b border-[#f1f5f4]">
+                <dt class="text-[#526b67] font-medium">Check-In Time:</dt>
+                <dd id="p3-detail-time" class="font-mono-code text-[#162624] text-right">10:12 AM</dd>
+              </div>
+              <div class="pt-1">
+                <dt class="text-[#526b67] font-medium mb-1">Details Recorded at Counter:</dt>
+                <dd id="p3-detail-notes" class="bg-[#f6faf8] border border-[#dce8e4] rounded-xl p-2.5 text-[#1e2d2b] font-medium">
+                  Fever for 2 days, pulse &amp; SpO2 normal (98%)
+                </dd>
+              </div>
+            </dl>
           </div>
 
         </div>
-      </section>
 
-      <!-- =============================================================== -->
-      <!-- RIGHT PANEL: RECEPTIONIST / STAFF DECK + IVR + SMS OUTBOX       -->
-      <!-- =============================================================== -->
-      <section id="panel-staff" class="lg:col-span-7 space-y-5">
-
-        <!-- Staff 1-Tap Disruption & Queue Deck -->
-        <div class="bg-white rounded-2xl border border-[#dce8e4] shadow-sm p-5">
-          <div class="flex flex-wrap items-center justify-between gap-2 pb-3.5 border-b border-[#dce8e4]">
+        <!-- RIGHT COLUMN: LIVE QUEUE POSITION STREAM -->
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-[#d8e6e2] p-5 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3.5 border-b border-[#e4eeeb]">
             <div>
-              <p class="font-mono-code text-xs font-bold text-[#2e6f65] uppercase">RECEPTIONIST &amp; DOCTOR DECK</p>
-              <h2 class="font-display font-bold text-xl text-[#1e2d2b]">Zero-Typing Queue &amp; Disruption Controls</h2>
+              <span class="font-mono-code text-xs font-bold text-[#246a5e] uppercase">LIVE CLINIC QUEUE PROGRESSION</span>
+              <h3 class="font-display font-bold text-lg text-[#162624]">Real-Time Queue &amp; Disruption Feed</h3>
             </div>
-
-            <!-- Tunable N-Patient Window Selector -->
-            <div class="flex items-center gap-2 bg-[#f6faf8] px-3 py-1.5 rounded-xl border border-[#dce8e4]">
-              <span class="text-xs font-semibold text-[#415653]">Moving Window (N):</span>
-              <select id="select-window-size" onchange="updateWindowSize()" class="text-xs font-mono-code font-bold bg-white border border-[#cbd5e1] rounded px-2 py-1 text-[#2e6f65]">
-                <option value="3">Last 3 Visits</option>
-                <option value="5" selected>Last 5 Visits</option>
-                <option value="8">Last 8 Visits</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Live Statistical Percentile Strip -->
-          <div class="mt-3 bg-[#f6faf8] border border-[#dce8e4] rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-xs font-semibold text-[#415653]">Recent Durations (min):</span>
-              <div id="ui-duration-pills" class="flex items-center gap-1 flex-wrap"></div>
-            </div>
-            <div class="flex items-center gap-3 font-mono-code text-xs">
-              <span class="text-[#2e6f65] font-bold" id="ui-p25-label">P25: 8.0m</span>
-              <span class="text-[#1e2d2b] font-bold" id="ui-p50-label">Median: 9.5m</span>
-              <span class="text-[#b86b35] font-bold" id="ui-p75-label">P75: 11.0m</span>
-            </div>
-          </div>
-
-          <!-- Primary 1-Tap Action Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-
-            <!-- 1. Advance Queue + Simulate Doctor Running Late -->
-            <div class="bg-[#f6faf8] border border-[#dce8e4] rounded-xl p-4 flex flex-col justify-between">
-              <div>
-                <div class="flex items-center justify-between">
-                  <span class="font-mono-code text-xs font-bold text-[#2e6f65]">1. CONSULTATION FLOW</span>
-                  <button onclick="simulateDoctorLate()" class="text-[11px] font-mono-code bg-[#fef6e6] hover:bg-[#fce8c3] text-[#8a5a00] border border-[#d99b26] px-2 py-0.5 rounded transition" title="Simulates current consultation running +5 mins longer than expected">
-                    +5m Running Late
-                  </button>
-                </div>
-                <h3 class="font-display font-bold text-base text-[#1e2d2b] mt-1">Complete Ongoing &amp; Call Next</h3>
-                <p class="text-xs text-[#415653] mt-0.5">Records actual consultation length into SQLite &amp; updates percentiles.</p>
-              </div>
-              <div class="mt-3 flex items-center gap-2">
-                <input id="input-visit-duration" type="number" value="10" min="2" max="45" class="w-16 text-sm font-mono-code bg-white border border-[#cbd5e1] rounded-lg px-2 py-2 text-center" />
-                <span class="text-xs text-[#415653]">min</span>
-                <button onclick="advanceQueue()" class="flex-1 bg-[#2e6f65] hover:bg-[#23574f] text-white font-display font-bold text-sm py-2.5 px-3 rounded-xl transition shadow-sm">
-                  <i class="fa-solid fa-forward-step mr-1"></i> Next Token (+1)
-                </button>
-              </div>
-            </div>
-
-            <!-- 2. Emergency Interruption Button (Blinking Red Point) -->
-            <div class="bg-[#fff5f5] border border-[#f5c2c2] rounded-xl p-4 flex flex-col justify-between">
-              <div>
-                <span class="font-mono-code text-xs font-bold text-[#b52b27]">2. INLINE EMERGENCY POP-UP</span>
-                <h3 class="font-display font-bold text-base text-[#8c2323] mt-1">Blinking Red Point Interruption</h3>
-                <p class="text-xs text-[#7a2e2e] mt-0.5">Pops up inline between active tokens and shifts every "Come back at" time.</p>
-              </div>
-              <div class="mt-3 flex items-center gap-2">
-                <input id="input-emergency-delay" type="number" value="15" min="5" max="60" class="w-16 text-sm font-mono-code bg-white border border-[#f5c2c2] rounded-lg px-2 py-2 text-center" />
-                <span class="text-xs text-[#7a2e2e]">min</span>
-                <button id="btn-emergency" onclick="toggleEmergency()" class="flex-1 bg-[#c94a4a] hover:bg-[#a83838] text-white font-display font-bold text-sm py-2.5 px-3 rounded-xl transition shadow-sm">
-                  <i class="fa-solid fa-triangle-exclamation mr-1"></i> Trigger Emergency
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 3. Unforeseen Activity / Custom Written Phrase Pop-up -->
-          <div class="mt-4 bg-[#f6faf8] border border-[#dce8e4] rounded-xl p-3.5">
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="font-mono-code text-xs font-bold text-[#b86b35]">3. UNFORESEEN ACTIVITY / CUSTOM WRITTEN PHRASE (INLINE POP-UP)</span>
-              <div class="flex gap-2">
-                <button onclick="setQuickPhrase('Doctor attending urgent dressing (+12m shift)', 12)" class="text-[11px] bg-white border border-[#cbd5e1] px-2 py-0.5 rounded hover:bg-[#eef3f1]">Preset: Dressing (+12m)</button>
-                <button onclick="setQuickPhrase('ECG machine calibration in progress (+8m)', 8)" class="text-[11px] bg-white border border-[#cbd5e1] px-2 py-0.5 rounded hover:bg-[#eef3f1]">Preset: ECG (+8m)</button>
-                <button onclick="clearPhrase()" class="text-[11px] text-[#9e2a2b] font-semibold hover:underline">Clear</button>
-              </div>
-            </div>
-            <div class="flex flex-wrap gap-2">
-              <input id="input-custom-phrase" type="text" value="Doctor attending urgent dressing (+12m shift)" class="flex-1 text-xs bg-white border border-[#cbd5e1] rounded-lg px-3 py-2" />
-              <input id="input-phrase-delay" type="number" value="12" min="0" max="60" class="w-16 text-xs font-mono-code bg-white border border-[#cbd5e1] rounded-lg px-2 py-2 text-center" />
-              <button onclick="postCustomPhrase()" class="bg-[#b86b35] hover:bg-[#9c5828] text-white font-semibold text-xs px-4 py-2 rounded-lg transition">
-                Post Inline Phrase
-              </button>
-            </div>
-          </div>
-
-          <!-- 4. Automated Phone Call (IVR) + SMS Fallback Trigger -->
-          <div class="mt-4 bg-[#f2f7f5] border border-[#c8ddd7] rounded-xl p-3.5">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <span class="font-mono-code text-xs font-bold text-[#1e2d2b]">4. AUTOMATED PHONE CALL (IVR) &amp; KEYPAD SMS FALLBACK</span>
-                <p class="text-xs text-[#415653] mt-0.5">Calls absent or keypad-phone patients to confirm arrival, shift to a free buffer slot, or eliminate token.</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <select id="select-ivr-token" class="text-xs font-bold bg-white border border-[#cbd5e1] rounded-lg px-2.5 py-2">
-                  <option value="4">Token #4 (Lokesh S.)</option>
-                  <option value="5">Token #5 (M. Devi)</option>
-                  <option value="6">Token #6 (K. Patel)</option>
-                  <option value="7">Token #7 (B. Singh)</option>
-                </select>
-                <button onclick="triggerIVRCall()" class="bg-[#1e2d2b] hover:bg-[#2f4542] text-white font-semibold text-xs px-3.5 py-2 rounded-lg transition shadow-sm">
-                  <i class="fa-solid fa-phone-volume mr-1.5 text-[#84c5b8]"></i> Trigger Automated Call + SMS
-                </button>
-              </div>
-            </div>
-            <p id="ui-ivr-log" class="mt-2 font-mono-code text-xs text-[#2e6f65] font-semibold">Status: System Ready.</p>
-          </div>
-        </div>
-
-        <!-- INTERACTIVE AUTOMATED VOICE CALL (IVR) DIALER MODAL -->
-        <div id="ivr-modal" class="hidden bg-[#1e2d2b] text-white rounded-2xl border-2 border-[#84c5b8] shadow-xl p-5">
-          <div class="flex items-center justify-between pb-3 border-b border-[#36524e]">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-[#2e6f65] flex items-center justify-center animate-pulse">
-                <i class="fa-solid fa-phone-volume text-[#84c5b8] text-lg"></i>
-              </div>
-              <div>
-                <p class="font-mono-code text-[11px] text-[#84c5b8]">TWILIO / EXOTEL AUTOMATED VOICE IVR CALL ACTIVE</p>
-                <h3 id="ivr-modal-title" class="font-display font-bold text-lg">Calling Patient Token #4...</h3>
-              </div>
-            </div>
-            <button onclick="speakIVRPrompt()" class="text-xs bg-[#263936] hover:bg-[#324b47] border border-[#4a6b65] px-3 py-1.5 rounded-lg">
-              <i class="fa-solid fa-volume-high mr-1"></i> Replay Audio Prompt
-            </button>
-          </div>
-          <p class="text-xs text-[#cbe5df] mt-3 bg-[#263936] p-3 rounded-lg border border-[#3d5a55] font-mono-code">
-            <i class="fa-solid fa-microphone-lines text-[#84c5b8] mr-1"></i> Spoken Prompt: "Hello from ClinicQ. Are you coming to the clinic? Press 2 if delayed to shift to a free buffer slot, or Press 9 to eliminate your token."
-          </p>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3.5">
-            <button onclick="submitIVRKey('1')" class="bg-[#263936] hover:bg-[#314945] border border-[#84c5b8] rounded-xl p-3 text-left transition">
-              <span class="font-mono-code text-xs text-[#84c5b8] font-bold block">KEYPAD PRESS 1</span>
-              <span class="text-xs text-white font-semibold mt-1 block">Arriving in 2 Mins (Hold)</span>
-            </button>
-            <button onclick="submitIVRKey('2')" class="bg-[#fef6e6] hover:bg-[#fcecd0] text-[#8a5a00] border-2 border-[#d99b26] rounded-xl p-3 text-left transition">
-              <span class="font-mono-code text-xs font-bold block">OPTION A (KEYPAD PRESS 2)</span>
-              <span class="text-xs font-bold mt-1 block">Delayed → Shift to Free Slot</span>
-            </button>
-            <button onclick="submitIVRKey('9')" class="bg-[#fdecec] hover:bg-[#f9dada] text-[#9e2a2b] border-2 border-[#d97777] rounded-xl p-3 text-left transition">
-              <span class="font-mono-code text-xs font-bold block">OPTION B (KEYPAD PRESS 9)</span>
-              <span class="text-xs font-bold mt-1 block">Cancel → Eliminate Token</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- LIVE SMS FALLBACK OUTBOX (FOR FEATURE / KEYPAD PHONES) -->
-        <div class="bg-white rounded-2xl border border-[#dce8e4] shadow-sm p-4">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-mono-code text-xs font-bold text-[#2e6f65] uppercase">
-              <i class="fa-solid fa-comment-sms mr-1"></i> Live SMS Fallback Gateway Log (For Keypad Phones)
+            <span id="p3-elapsed-badge" class="font-mono-code text-xs bg-[#e3f5ec] text-[#1b5e3a] px-3 py-1 rounded-lg font-semibold">
+              Ongoing Visit: 3.0m elapsed
             </span>
-            <span class="text-[11px] font-mono-code text-[#64748b]">Twilio / Exotel Webhook</span>
           </div>
-          <div id="ui-sms-list" class="space-y-1.5 max-h-[120px] overflow-y-auto text-xs">
+
+          <!-- Color Legend -->
+          <div class="flex flex-wrap items-center gap-4 my-3 text-xs text-[#415653] bg-[#f7faf9] px-3.5 py-2 rounded-xl border border-[#e4eeeb]">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#2e8b57]"></span> <b>Green:</b> Ongoing Token</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#1d4ed8]"></span> <b>Blue:</b> Your Token</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#dc2626] blink-red-dot"></span> <b>Blinking Red:</b> Emergency / Delay</span>
+          </div>
+
+          <div id="p3-queue-stream" class="space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
             <!-- Populated dynamically -->
           </div>
         </div>
 
-      </section>
-    </div>
+      </div>
+    </section>
 
-    <!-- ================================================================= -->
-    <!-- PILOT VERIFICATION KPIs & CLINIC-DAY SIMULATOR (SLIDE 10)         -->
-    <!-- ================================================================= -->
-    <section id="panel-pilot" class="mt-6 bg-white rounded-2xl border border-[#dce8e4] shadow-sm p-6">
-      <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#dce8e4]">
-        <div>
-          <p class="font-mono-code text-xs font-bold text-[#2e6f65] uppercase">09 / EMPIRICAL IMPACT &amp; PILOT VERIFICATION FRAMEWORK</p>
-          <h2 class="font-display font-bold text-2xl text-[#1e2d2b]">Clinic-Day Simulator &amp; Three Measured Pilot KPIs</h2>
-        </div>
-        <button onclick="runSimulator()" class="bg-[#2e6f65] hover:bg-[#23574f] text-white font-display font-bold text-sm px-4 py-2.5 rounded-xl transition shadow-sm">
-          <i class="fa-solid fa-flask mr-1.5"></i> Run 30-Patient Monte Carlo Clinic Simulator
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- PORTAL 2: CLINIC STAFF PORTAL (LOGIN / REGISTER -> RECEPTION DECK)    -->
+  <!-- ===================================================================== -->
+  <main id="portal-staff" class="hidden flex-grow py-8 px-4">
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- STAFF SCREEN A: STAFF LOGIN OR REGISTER NEW CLINIC                  -->
+    <!-- ------------------------------------------------------------------- -->
+    <section id="staff-auth-screen" class="max-w-xl w-full mx-auto bg-white rounded-3xl border border-[#d8e6e2] shadow-sm overflow-hidden">
+      <div class="bg-[#162624] text-white px-7 py-6">
+        <span class="font-mono-code text-xs text-[#84c5b8] uppercase tracking-wider">CLINIC ADMINISTRATION &amp; RECEPTION DESK</span>
+        <h1 class="font-display font-extrabold text-2xl sm:text-3xl mt-1">Clinic Staff Portal</h1>
+        <p class="text-xs sm:text-sm text-[#a8c5be] mt-1">Sign in to manage your clinic queue, register walk-in tokens, or onboard a new clinic.</p>
+      </div>
+
+      <!-- Auth Tabs -->
+      <div class="flex border-b border-[#dce8e4] bg-[#f6faf8]">
+        <button id="auth-tab-login" onclick="switchAuthTab('login')" class="flex-1 py-3 text-xs font-bold uppercase tracking-wider text-[#162624] border-b-2 border-[#246a5e] bg-white">
+          Sign In to Existing Clinic
+        </button>
+        <button id="auth-tab-register" onclick="switchAuthTab('register')" class="flex-1 py-3 text-xs font-bold uppercase tracking-wider text-[#526b67] hover:text-[#162624]">
+          + Register New Clinic
         </button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
-        <div class="bg-[#f6faf8] border border-[#dce8e4] rounded-xl p-4">
-          <p class="font-mono-code text-xs font-bold text-[#2e6f65]">KPI 1: WAITING AREA DWELL TIME</p>
-          <div class="mt-2 flex items-baseline gap-3">
-            <span id="kpi-dwell-clinicq" class="font-display font-extrabold text-3xl text-[#1e2d2b]">14.2 min</span>
-            <span id="kpi-dwell-trad" class="text-xs text-[#64748b] line-through">Paper Register: 68.5 min</span>
+      <!-- Form 1: Staff Login -->
+      <div id="auth-form-login" class="p-7 space-y-5">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-[#3b5450] mb-1.5">Select or Enter Clinic ID</label>
+          <input id="staff-login-code" type="text" value="CLINIC-101" class="w-full font-mono-code font-bold text-base uppercase bg-[#f7faf9] border border-[#cbd5e1] rounded-xl px-4 py-2.5" />
+          <div class="flex flex-wrap gap-2 mt-2">
+            <button onclick="document.getElementById('staff-login-code').value='CLINIC-101'" class="text-[11px] font-mono-code bg-[#eef5f3] hover:bg-[#dcebe6] text-[#1e4d45] px-2.5 py-1 rounded border border-[#c5ddd6]">CLINIC-101 (City Care)</button>
+            <button onclick="document.getElementById('staff-login-code').value='METRO-202'" class="text-[11px] font-mono-code bg-[#eef5f3] hover:bg-[#dcebe6] text-[#1e4d45] px-2.5 py-1 rounded border border-[#c5ddd6]">METRO-202 (Metro Child)</button>
+            <button onclick="document.getElementById('staff-login-code').value='APEX-303'" class="text-[11px] font-mono-code bg-[#eef5f3] hover:bg-[#dcebe6] text-[#1e4d45] px-2.5 py-1 rounded border border-[#c5ddd6]">APEX-303 (Apex Ortho)</button>
           </div>
-          <div class="w-full bg-[#dce8e4] h-2 rounded-full mt-3 overflow-hidden">
-            <div class="bg-[#2e6f65] h-full rounded-full" style="width: 22%"></div>
-          </div>
-          <p class="text-xs text-[#415653] mt-2">Time spent physically inside the crowded waiting room per patient.</p>
         </div>
 
-        <div class="bg-[#f6faf8] border border-[#dce8e4] rounded-xl p-4">
-          <p class="font-mono-code text-xs font-bold text-[#2e6f65]">KPI 2: PEAK WAITING ROOM HEADCOUNT</p>
-          <div class="mt-2 flex items-baseline gap-3">
-            <span id="kpi-crowd-clinicq" class="font-display font-extrabold text-3xl text-[#1e2d2b]">5 patients</span>
-            <span id="kpi-crowd-trad" class="text-xs text-[#64748b] line-through">Paper Register: 24 patients</span>
-          </div>
-          <div class="w-full bg-[#dce8e4] h-2 rounded-full mt-3 overflow-hidden">
-            <div class="bg-[#2e6f65] h-full rounded-full" style="width: 21%"></div>
-          </div>
-          <p class="text-xs text-[#415653] mt-2">Maximum simultaneous patients inside the clinic waiting room at peak hour.</p>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-[#3b5450] mb-1.5">Staff Security PIN</label>
+          <input id="staff-login-pin" type="password" value="1234" placeholder="Default: 1234" class="w-full font-mono-code text-base bg-[#f7faf9] border border-[#cbd5e1] rounded-xl px-4 py-2.5" />
+          <p class="text-[11px] text-[#64748b] mt-1">Default PIN for pre-configured clinics is <b>1234</b>.</p>
         </div>
 
-        <div class="bg-[#f6faf8] border border-[#dce8e4] rounded-xl p-4">
-          <p class="font-mono-code text-xs font-bold text-[#b86b35]">KPI 3: WAIT PREDICTION ERROR</p>
-          <div class="mt-2 flex items-baseline gap-3">
-            <span id="kpi-error" class="font-display font-extrabold text-3xl text-[#1e2d2b]">±2.3 min</span>
-            <span id="kpi-sim-mode" class="text-xs text-[#415653]">25th–75th Pctl Band</span>
+        <p id="staff-login-error" class="hidden text-xs font-semibold text-[#b91c1c]"></p>
+
+        <button onclick="submitStaffLogin()" class="w-full bg-[#246a5e] hover:bg-[#1c544a] text-white font-display font-bold text-sm py-3 rounded-xl transition shadow-sm">
+          <i class="fa-solid fa-lock-open mr-1.5"></i> Access Clinic Reception Dashboard
+        </button>
+      </div>
+
+      <!-- Form 2: Register New Clinic -->
+      <div id="auth-form-register" class="hidden p-7 space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs font-bold uppercase text-[#3b5450] mb-1">New Clinic Unique ID</label>
+            <input id="reg-clinic-code" type="text" placeholder="e.g. CARE-505" class="w-full font-mono-code font-bold text-sm uppercase bg-[#f7faf9] border border-[#cbd5e1] rounded-xl px-3.5 py-2" />
           </div>
-          <div class="w-full bg-[#dce8e4] h-2 rounded-full mt-3 overflow-hidden">
-            <div class="bg-[#b86b35] h-full rounded-full" style="width: 88%"></div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-[#3b5450] mb-1">Set Staff PIN</label>
+            <input id="reg-clinic-pin" type="text" value="1234" class="w-full font-mono-code text-sm bg-[#f7faf9] border border-[#cbd5e1] rounded-xl px-3.5 py-2" />
           </div>
-          <p class="text-xs text-[#415653] mt-2">Mean absolute error (in minutes) across simulated clinic sessions.</p>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase text-[#3b5450] mb-1">Clinic / Hospital Name</label>
+          <input id="reg-clinic-name" type="text" placeholder="e.g. Sunrise Family Clinic" class="w-full text-sm bg-[#f7faf9] border border-[#cbd5e1] rounded-xl px-3.5 py-2" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block text-xs font-bold uppercase text-[#3b5450] mb-1">Consulting Doctor Name</label>
+            <input id="reg-doctor-name" type="text" placeholder="e.g. Dr. Neha Saxena (MD)" class="w-full text-sm bg-[#f7faf9] border border-[#cbd5e1] rounded-xl px-3.5 py-2" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-[#3b5450] mb-1">Department / Specialty</label>
+            <input id="reg-specialty" type="text" placeholder="e.g. ENT & General OPD" class="w-full text-sm bg-[#f7faf9] border border-[#cbd5e1] rounded-xl px-3.5 py-2" />
+          </div>
+        </div>
+        <p id="staff-reg-error" class="hidden text-xs font-semibold text-[#b91c1c]"></p>
+        <button onclick="submitCreateClinic()" class="w-full bg-[#162624] hover:bg-[#233b38] text-white font-display font-bold text-sm py-3 rounded-xl transition">
+          <i class="fa-solid fa-plus-circle mr-1.5"></i> Create Clinic &amp; Launch Dashboard
+        </button>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------------------- -->
+    <!-- STAFF SCREEN B: AUTHENTICATED RECEPTION & DOCTOR WORKSPACE          -->
+    <!-- ------------------------------------------------------------------- -->
+    <section id="staff-workspace" class="hidden max-w-7xl w-full mx-auto space-y-6">
+
+      <!-- Staff Workspace Top Bar -->
+      <div class="bg-[#162624] text-white rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-mono-code text-xs bg-[#246a5e] text-[#d2f0e9] px-2.5 py-0.5 rounded font-bold" id="sw-clinic-code">CLINIC-101</span>
+            <span class="text-xs text-[#84c5b8] font-mono-code">• Staff Administration Mode</span>
+          </div>
+          <h2 id="sw-clinic-name" class="font-display font-extrabold text-2xl mt-1">City Care Polyclinic</h2>
+          <p id="sw-doctor-name" class="text-xs text-[#a8c5be]">Dr. Rajesh Sharma (MD, Internal Medicine)</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button onclick="openQRPosterModal()" class="text-xs font-semibold bg-[#246a5e] hover:bg-[#2d8072] text-white px-3.5 py-2 rounded-xl border border-[#84c5b8]/40 transition">
+            <i class="fa-solid fa-qrcode mr-1.5"></i> Print Clinic QR Poster
+          </button>
+          <button onclick="staffLogout()" class="text-xs font-semibold bg-[#213835] hover:bg-[#2c4743] text-[#d2e7e2] px-3.5 py-2 rounded-xl border border-[#385a55] transition">
+            <i class="fa-solid fa-right-from-bracket mr-1"></i> Switch Clinic / Logout
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- LEFT COLUMN (4 COLS): COUNTER PATIENT REGISTRATION FORM -->
+        <div class="lg:col-span-4 bg-white rounded-2xl border border-[#d8e6e2] p-5 shadow-sm space-y-4">
+          <div class="pb-3 border-b border-[#e4eeeb]">
+            <span class="font-mono-code text-xs font-bold text-[#246a5e] uppercase">RECEPTION COUNTER DESK</span>
+            <h3 class="font-display font-bold text-lg text-[#162624]">Issue New Patient Token</h3>
+            <p class="text-xs text-[#526b67]">Details entered here are automatically displayed when the patient logs in with their Token #.</p>
+          </div>
+
+          <div class="space-y-3">
+            <div class="grid grid-cols-3 gap-2.5">
+              <div class="col-span-2">
+                <label class="block text-[11px] font-bold uppercase text-[#3b5450] mb-1">Patient Full Name *</label>
+                <input id="counter-name" type="text" placeholder="e.g. Rohit Khanna" class="w-full text-xs bg-[#f7faf9] border border-[#cbd5e1] rounded-lg px-3 py-2" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-[#3b5450] mb-1">Age / Sex</label>
+                <input id="counter-age" type="text" placeholder="28 yrs" class="w-full text-xs bg-[#f7faf9] border border-[#cbd5e1] rounded-lg px-3 py-2" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-[#3b5450] mb-1">Mobile Number</label>
+                <input id="counter-phone" type="text" placeholder="+91 98765-12345" class="w-full font-mono-code text-xs bg-[#f7faf9] border border-[#cbd5e1] rounded-lg px-3 py-2" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold uppercase text-[#3b5450] mb-1">Visit Category</label>
+                <select id="counter-vtype" class="w-full text-xs bg-[#f7faf9] border border-[#cbd5e1] rounded-lg px-2.5 py-2">
+                  <option value="General Checkup">General Checkup (~10m)</option>
+                  <option value="Follow-up / Report">Follow-up / Report (~7m)</option>
+                  <option value="Detailed Consultation">Detailed Visit (~14m)</option>
+                  <option value="Vaccination / Dressing">Vaccination / Dressing (~8m)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold uppercase text-[#3b5450] mb-1">Counter Notes / Symptoms / Vitals</label>
+              <textarea id="counter-notes" rows="2" placeholder="e.g. Fever since yesterday, BP 124/82, SpO2 99%" class="w-full text-xs bg-[#f7faf9] border border-[#cbd5e1] rounded-lg px-3 py-2"></textarea>
+            </div>
+
+            <button onclick="issueCounterToken()" class="w-full bg-[#246a5e] hover:bg-[#1c544a] text-white font-display font-bold text-sm py-2.5 rounded-xl transition shadow-sm">
+              <i class="fa-solid fa-print mr-1.5"></i> Register &amp; Issue Token Slip
+            </button>
+          </div>
+
+          <!-- Newly Issued Token Slip Confirmation Box -->
+          <div id="issued-slip-box" class="hidden bg-[#f0fdf4] border-2 border-[#16a34a] rounded-xl p-3.5">
+            <div class="flex items-center justify-between">
+              <span class="font-mono-code text-[11px] font-bold text-[#15803d] uppercase">TOKEN SLIP GENERATED</span>
+              <span id="issued-slip-num" class="font-mono-code font-extrabold text-lg text-[#15803d]">TOKEN #8</span>
+            </div>
+            <p id="issued-slip-desc" class="text-xs text-[#166534] mt-1 font-medium"></p>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN (8 COLS): LIVE QUEUE CONTROLS, DISRUPTIONS & ROSTER -->
+        <div class="lg:col-span-8 space-y-5">
+
+          <!-- 1-Tap Consultation & Disruption Controls -->
+          <div class="bg-white rounded-2xl border border-[#d8e6e2] p-5 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#e4eeeb]">
+              <div>
+                <span class="font-mono-code text-xs font-bold text-[#246a5e] uppercase">LIVE QUEUE &amp; DISRUPTION ENGINE</span>
+                <h3 class="font-display font-bold text-lg text-[#162624]">1-Tap Staff Controls</h3>
+              </div>
+              <div class="flex items-center gap-3 font-mono-code text-xs bg-[#f6faf8] px-3 py-1.5 rounded-xl border border-[#dce8e4]">
+                <span id="sw-p25" class="text-[#246a5e] font-bold">P25: 8.0m</span>
+                <span id="sw-p50" class="text-[#162624] font-bold">Median: 9.5m</span>
+                <span id="sw-p75" class="text-[#b86b35] font-bold">P75: 11.0m</span>
+                <select id="sw-window" onchange="staffChangeWindow()" class="bg-white border border-[#cbd5e1] rounded px-2 py-0.5 text-xs">
+                  <option value="3">Window: 3</option>
+                  <option value="5" selected>Window: 5</option>
+                  <option value="8">Window: 8</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <!-- Complete Ongoing & Call Next -->
+              <div class="bg-[#f6faf8] border border-[#dce8e4] rounded-xl p-4">
+                <div class="flex items-center justify-between">
+                  <span class="font-mono-code text-xs font-bold text-[#246a5e]">1. ADVANCE CONSULTATION</span>
+                  <button onclick="staffAddLate()" class="text-[11px] font-mono-code bg-[#fef6e6] hover:bg-[#fce8c3] text-[#8a5a00] border border-[#d99b26] px-2 py-0.5 rounded">
+                    +5m Running Late
+                  </button>
+                </div>
+                <p class="text-xs text-[#415653] mt-1">Logs completed consultation duration and calls the next waiting token.</p>
+                <div class="mt-3 flex items-center gap-2">
+                  <input id="sw-visit-dur" type="number" value="10" min="2" max="45" class="w-16 text-sm font-mono-code bg-white border border-[#cbd5e1] rounded-lg px-2 py-2 text-center" />
+                  <span class="text-xs text-[#415653]">min</span>
+                  <button onclick="staffNextToken()" class="flex-1 bg-[#246a5e] hover:bg-[#1c544a] text-white font-display font-bold text-sm py-2.5 px-3 rounded-xl transition">
+                    <i class="fa-solid fa-forward-step mr-1"></i> Call Next Token (+1)
+                  </button>
+                </div>
+              </div>
+
+              <!-- Blinking Red Emergency Interruption -->
+              <div class="bg-[#fff5f5] border border-[#f5c2c2] rounded-xl p-4">
+                <span class="font-mono-code text-xs font-bold text-[#b52b27]">2. EMERGENCY INTERRUPTION (BLINKING RED)</span>
+                <p class="text-xs text-[#7a2e2e] mt-1">Displays an inline blinking red emergency alert on all patient phones.</p>
+                <div class="mt-3 flex items-center gap-2">
+                  <input id="sw-em-delay" type="number" value="15" min="5" max="60" class="w-16 text-sm font-mono-code bg-white border border-[#f5c2c2] rounded-lg px-2 py-2 text-center" />
+                  <span class="text-xs text-[#7a2e2e]">min</span>
+                  <button id="sw-btn-em" onclick="staffToggleEmergency()" class="flex-1 bg-[#c94a4a] hover:bg-[#a83838] text-white font-display font-bold text-sm py-2.5 px-3 rounded-xl transition">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Trigger Emergency
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Unforeseen Written Phrase Input -->
+            <div class="mt-4 bg-[#f6faf8] border border-[#dce8e4] rounded-xl p-3.5">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                <span class="font-mono-code text-xs font-bold text-[#b86b35]">3. INLINE UNFORESEEN WRITTEN PHRASE</span>
+                <div class="flex gap-1.5">
+                  <button onclick="staffQuickPhrase('Doctor attending urgent dressing (+12m shift)', 12)" class="text-[11px] bg-white border border-[#cbd5e1] px-2 py-0.5 rounded hover:bg-[#eef3f1]">Dressing (+12m)</button>
+                  <button onclick="staffQuickPhrase('Emergency ward round in progress (+15m)', 15)" class="text-[11px] bg-white border border-[#cbd5e1] px-2 py-0.5 rounded hover:bg-[#eef3f1]">Ward Round (+15m)</button>
+                  <button onclick="staffClearPhrase()" class="text-[11px] text-[#9e2a2b] font-semibold hover:underline">Clear</button>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <input id="sw-phrase-input" type="text" placeholder="Type unforeseen update shown inline in patient queue..." value="Doctor attending urgent dressing (+12m shift)" class="flex-1 text-xs bg-white border border-[#cbd5e1] rounded-lg px-3 py-2" />
+                <input id="sw-phrase-delay" type="number" value="12" class="w-16 text-xs font-mono-code bg-white border border-[#cbd5e1] rounded-lg px-2 py-2 text-center" />
+                <button onclick="staffPostPhrase()" class="bg-[#b86b35] hover:bg-[#9c5828] text-white font-semibold text-xs px-4 py-2 rounded-lg transition">
+                  Broadcast Phrase
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Clinic Patient Queue Roster Table -->
+          <div class="bg-white rounded-2xl border border-[#d8e6e2] p-5 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#e4eeeb]">
+              <div>
+                <span class="font-mono-code text-xs font-bold text-[#246a5e] uppercase">LIVE PATIENT ROSTER &amp; IVR DISPATCH</span>
+                <h3 class="font-display font-bold text-lg text-[#162624]">Registered Tokens in Queue</h3>
+              </div>
+              <p id="sw-ivr-status" class="font-mono-code text-xs text-[#246a5e] font-semibold"></p>
+            </div>
+
+            <div class="overflow-x-auto mt-3">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-[#f6faf8] text-[#3b5450] border-b border-[#dce8e4] font-mono-code uppercase text-[11px]">
+                    <th class="py-2.5 px-3">Token</th>
+                    <th class="py-2.5 px-3">Patient &amp; Counter Notes</th>
+                    <th class="py-2.5 px-3">Visit Type</th>
+                    <th class="py-2.5 px-3">Predicted Wait</th>
+                    <th class="py-2.5 px-3">Status</th>
+                    <th class="py-2.5 px-3 text-right">Automated IVR / Action</th>
+                  </tr>
+                </thead>
+                <tbody id="sw-roster-tbody" class="divide-y divide-[#eef3f1]">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Staff IVR Simulator & SMS Gateway Outbox -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="bg-white rounded-2xl border border-[#d8e6e2] p-4 shadow-sm">
+              <span class="font-mono-code text-xs font-bold text-[#246a5e] uppercase block mb-2">
+                <i class="fa-solid fa-comment-sms mr-1"></i> Outbound SMS &amp; IVR Log
+              </span>
+              <div id="sw-sms-list" class="space-y-1.5 max-h-[150px] overflow-y-auto text-xs"></div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-[#d8e6e2] p-4 shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-mono-code text-xs font-bold text-[#246a5e] uppercase">Pilot KPIs &amp; Simulator</span>
+                <button onclick="staffRunSimulator()" class="text-[11px] bg-[#246a5e] text-white px-2.5 py-1 rounded font-semibold">Run 30-Patient Sim</button>
+              </div>
+              <div class="grid grid-cols-3 gap-2 text-center mt-3">
+                <div class="bg-[#f6faf8] p-2.5 rounded-xl border border-[#dce8e4]">
+                  <p class="text-[10px] font-mono-code text-[#526b67]">DWELL TIME</p>
+                  <p id="sw-kpi-dwell" class="font-display font-extrabold text-base text-[#162624] mt-0.5">14.2m</p>
+                </div>
+                <div class="bg-[#f6faf8] p-2.5 rounded-xl border border-[#dce8e4]">
+                  <p class="text-[10px] font-mono-code text-[#526b67]">PEAK CROWD</p>
+                  <p id="sw-kpi-crowd" class="font-display font-extrabold text-base text-[#162624] mt-0.5">5 pax</p>
+                </div>
+                <div class="bg-[#f6faf8] p-2.5 rounded-xl border border-[#dce8e4]">
+                  <p class="text-[10px] font-mono-code text-[#526b67]">PRED ERROR</p>
+                  <p id="sw-kpi-err" class="font-display font-extrabold text-base text-[#b86b35] mt-0.5">±2.3m</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
 
   </main>
 
-  <!-- PRINTABLE CLINIC WALL QR POSTER MODAL -->
+  <!-- ===================================================================== -->
+  <!-- PRINTABLE CLINIC WALL QR POSTER MODAL                                 -->
+  <!-- ===================================================================== -->
   <div id="qr-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 border-2 border-[#2e6f65] text-center shadow-2xl">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 border-2 border-[#246a5e] text-center shadow-2xl">
       <div class="flex justify-between items-center pb-3 border-b border-[#dce8e4]">
-        <span class="font-mono-code text-xs font-bold text-[#2e6f65]">CLINIC WALL QR POSTER</span>
-        <button onclick="toggleQRModal(false)" class="text-sm text-[#64748b] hover:text-black font-bold">✕ Close</button>
+        <span class="font-mono-code text-xs font-bold text-[#246a5e]">OFFICIAL CLINIC WALL QR POSTER</span>
+        <button onclick="closeQRPosterModal()" class="text-sm text-[#64748b] hover:text-black font-bold">✕ Close</button>
       </div>
-      <h3 class="font-display font-extrabold text-2xl text-[#1e2d2b] mt-4">City Care Polyclinic</h3>
-      <p class="text-xs text-[#415653] mt-1">Scan with your phone camera to track live wait time from outside</p>
+      <h3 id="qr-modal-clinic-name" class="font-display font-extrabold text-2xl text-[#162624] mt-4">City Care Polyclinic</h3>
+      <p id="qr-modal-doc-name" class="text-xs text-[#415653] mt-0.5">Dr. Rajesh Sharma</p>
       <div class="my-4 flex justify-center">
-        <img id="qr-poster-img" src="" alt="ClinicQ Live QR Code" class="w-48 h-48 border-4 border-[#f2f7f5] rounded-xl p-2 shadow-sm" />
+        <img id="qr-poster-img" src="" alt="ClinicQ Wall QR Code" class="w-48 h-48 border-4 border-[#f2f7f5] rounded-2xl p-2 shadow-sm" />
       </div>
       <div class="bg-[#f6faf8] rounded-xl p-3 border border-[#dce8e4]">
-        <p class="font-mono-code text-xs text-[#415653]">OR ENTER MANUAL UNIQUE CODE:</p>
-        <p class="font-mono-code font-extrabold text-xl text-[#2e6f65] tracking-wider mt-0.5">CLINIC-101</p>
+        <p class="font-mono-code text-[11px] text-[#415653]">SCAN QR OR ENTER CLINIC CODE:</p>
+        <p id="qr-modal-code" class="font-mono-code font-extrabold text-xl text-[#246a5e] tracking-wider mt-0.5">CLINIC-101</p>
       </div>
-      <p class="text-[11px] text-[#64748b] mt-3">Scanning this QR code on your phone opens ClinicQ directly in Patient Mobile Mode synced with this server.</p>
+      <p class="text-[11px] text-[#64748b] mt-3">When a patient scans this QR code on their smartphone, it automatically selects this clinic and asks for their Token Number.</p>
     </div>
   </div>
 
+  <!-- ===================================================================== -->
+  <!-- APPLICATION LOGIC                                                     -->
+  <!-- ===================================================================== -->
   <script>
-    let currentState = null;
-    let myTokenNumber = 4;
+    // Global State
+    let activePortal = 'patient'; // 'patient' | 'staff'
+    let patientStep = 1;          // 1 = Enter Clinic Code, 2 = Enter Token #, 3 = Live Queue View
+    let selectedClinicCode = 'CLINIC-101';
+    let selectedTokenNumber = null;
+    let patientClinicData = null;
+    let patientTokenData = null;
 
-    async function fetchState() {
+    // Staff State
+    let staffAuthenticated = false;
+    let staffClinicCode = 'CLINIC-101';
+    let staffClinicData = null;
+
+    // ---------------------------------------------------------------------
+    // NAVIGATION & INITIALIZATION
+    // ---------------------------------------------------------------------
+    function switchPortal(portal) {
+      activePortal = portal;
+      const pMain = document.getElementById('portal-patient');
+      const sMain = document.getElementById('portal-staff');
+      const btnP = document.getElementById('nav-btn-patient');
+      const btnS = document.getElementById('nav-btn-staff');
+
+      if (portal === 'patient') {
+        pMain.classList.remove('hidden');
+        sMain.classList.add('hidden');
+        btnP.className = "px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#84c5b8] text-[#162624] transition";
+        btnS.className = "px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#213835] hover:bg-[#2c4743] text-[#d2e7e2] border border-[#385a55] transition";
+        loadPublicClinicsList();
+      } else {
+        pMain.classList.add('hidden');
+        sMain.classList.remove('hidden');
+        btnS.className = "px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#84c5b8] text-[#162624] transition";
+        btnP.className = "px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#213835] hover:bg-[#2c4743] text-[#d2e7e2] border border-[#385a55] transition";
+        if (staffAuthenticated) {
+          refreshStaffWorkspace();
+        }
+      }
+    }
+
+    function goHome(e) {
+      e.preventDefault();
+      switchPortal('patient');
+      backToPatientStep1();
+    }
+
+    // ---------------------------------------------------------------------
+    // PATIENT PORTAL: STEP 1 (SELECT CLINIC)
+    // ---------------------------------------------------------------------
+    async function loadPublicClinicsList() {
       try {
-        const res = await fetch('/api/state');
-        currentState = await res.json();
-        renderUI();
+        const res = await fetch('/api/clinics');
+        const data = await res.json();
+        const container = document.getElementById('public-clinics-list');
+        container.innerHTML = data.clinics.map(c => `
+          <div onclick="quickPickClinic('${c.clinic_code}')" class="cursor-pointer bg-[#f7faf9] hover:bg-[#eaf4f1] border border-[#d8e6e2] rounded-2xl p-3.5 flex items-center justify-between transition">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono-code font-bold text-xs bg-[#246a5e] text-white px-2 py-0.5 rounded">${c.clinic_code}</span>
+                <span class="font-display font-bold text-sm text-[#162624]">${c.clinic_name}</span>
+              </div>
+              <p class="text-xs text-[#526b67] mt-1">${c.doctor_name}</p>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-semibold text-[#1b5e3a] block">Ongoing: #${c.ongoing_token || '--'}</span>
+              <span class="text-[11px] text-[#64748b]">${c.waiting_count} waiting</span>
+            </div>
+          </div>
+        `).join('');
       } catch (e) {}
     }
 
-    function changeMyToken() {
-      myTokenNumber = parseInt(document.getElementById('select-my-token').value, 10);
-      renderUI();
+    function quickPickClinic(code) {
+      document.getElementById('patient-clinic-code-input').value = code;
+      verifyClinicStep1();
     }
 
-    function renderUI() {
-      if (!currentState) return;
+    async function verifyClinicStep1() {
+      const codeInput = document.getElementById('patient-clinic-code-input').value.trim().toUpperCase();
+      const errEl = document.getElementById('patient-step1-error');
+      errEl.classList.add('hidden');
 
-      document.getElementById('ui-clinic-name').textContent = currentState.clinic_name;
-      document.getElementById('ribbon-total-waiting').textContent = currentState.waiting_count;
-      document.getElementById('ribbon-inside-now').textContent = currentState.in_clinic_now;
-      document.getElementById('ribbon-outside-now').textContent = Math.max(0, currentState.waiting_count - 3);
-      document.getElementById('ui-elapsed-badge').textContent = `Ongoing Visit: ${currentState.elapsed_min}m elapsed`;
+      if (!codeInput) {
+        errEl.textContent = "Please enter a valid Clinic Unique Code.";
+        errEl.classList.remove('hidden');
+        return;
+      }
 
-      // Update Percentile Strip & Pills
-      document.getElementById('ui-p25-label').textContent = `P25: ${currentState.p25_min}m`;
-      document.getElementById('ui-p50-label').textContent = `Median: ${currentState.median_min}m`;
-      document.getElementById('ui-p75-label').textContent = `P75: ${currentState.p75_min}m`;
-      document.getElementById('select-window-size').value = String(currentState.window_size);
+      try {
+        const res = await fetch(`/api/clinic/${encodeURIComponent(codeInput)}`);
+        if (!res.ok) {
+          const err = await res.json();
+          errEl.textContent = err.detail || "Clinic not found.";
+          errEl.classList.remove('hidden');
+          return;
+        }
+        patientClinicData = await res.json();
+        selectedClinicCode = patientClinicData.clinic_code;
+        showPatientStep2();
+      } catch (e) {
+        errEl.textContent = "Unable to connect to server.";
+        errEl.classList.remove('hidden');
+      }
+    }
 
-      const pillsEl = document.getElementById('ui-duration-pills');
-      pillsEl.innerHTML = currentState.recent_durations.map(d =>
-        `<span class="font-mono-code text-[11px] bg-white border border-[#cbd5e1] px-2 py-0.5 rounded text-[#1e2d2b]">${d}m</span>`
-      ).join('');
+    function backToPatientStep1() {
+      patientStep = 1;
+      selectedTokenNumber = null;
+      document.getElementById('patient-step-1').classList.remove('hidden');
+      document.getElementById('patient-step-2').classList.add('hidden');
+      document.getElementById('patient-step-3').classList.add('hidden');
+      loadPublicClinicsList();
+    }
 
-      document.getElementById('ui-ivr-log').textContent = `Status: ${currentState.last_ivr_action}`;
+    // ---------------------------------------------------------------------
+    // PATIENT PORTAL: STEP 2 (ENTER TOKEN NUMBER)
+    // ---------------------------------------------------------------------
+    function showPatientStep2() {
+      patientStep = 2;
+      document.getElementById('patient-step-1').classList.add('hidden');
+      document.getElementById('patient-step-2').classList.remove('hidden');
+      document.getElementById('patient-step-3').classList.add('hidden');
+      document.getElementById('patient-step2-error').classList.add('hidden');
 
-      // Rebuild Dropdowns so newly added tokens appear
-      const mySelect = document.getElementById('select-my-token');
-      const ivrSelect = document.getElementById('select-ivr-token');
-      const activeTokens = currentState.tokens.filter(t => t.status !== 'completed');
-      mySelect.innerHTML = currentState.tokens.map(t =>
-        `<option value="${t.number}" ${t.number === myTokenNumber ? 'selected' : ''}>Tracking: Token #${t.number} (${t.name || 'Patient'})</option>`
-      ).join('');
-      ivrSelect.innerHTML = activeTokens.map(t =>
-        `<option value="${t.number}">Token #${t.number} (${t.name || 'Patient'})</option>`
-      ).join('');
+      document.getElementById('step2-clinic-name').textContent = patientClinicData.clinic_name;
+      document.getElementById('step2-doctor-name').textContent = `${patientClinicData.doctor_name} • ${patientClinicData.specialty}`;
+      document.getElementById('step2-ongoing-token').textContent = patientClinicData.ongoing_token ? `Token #${patientClinicData.ongoing_token}` : 'None';
+      document.getElementById('step2-clinic-code-badge').textContent = patientClinicData.clinic_code;
 
-      // Emergency Button State
-      const emBtn = document.getElementById('btn-emergency');
-      if (currentState.emergency_active) {
+      // Render quick-select buttons for tokens in this clinic
+      const gridEl = document.getElementById('step2-token-grid');
+      gridEl.innerHTML = patientClinicData.tokens.map(t => {
+        const statusColor = t.status === 'ongoing'
+          ? 'bg-[#e3f5ec] border-[#2e8b57] text-[#1b5e3a]'
+          : t.status === 'completed'
+          ? 'bg-gray-100 border-gray-300 text-gray-500'
+          : 'bg-[#f3f8f6] hover:bg-[#dcebe6] border-[#b9d3cc] text-[#162624]';
+        return `
+          <button onclick="quickSelectToken(${t.number})" class="px-3.5 py-2 rounded-xl border font-mono-code text-xs font-bold transition ${statusColor}">
+            Token #${t.number} (${t.name.split(' ')[0]})
+          </button>
+        `;
+      }).join('');
+
+      // Default input to first waiting token if available
+      const firstWaiting = patientClinicData.tokens.find(t => t.status === 'waiting');
+      if (firstWaiting) {
+        document.getElementById('patient-token-input').value = firstWaiting.number;
+      }
+    }
+
+    function quickSelectToken(num) {
+      document.getElementById('patient-token-input').value = num;
+      verifyTokenStep2();
+    }
+
+    async function verifyTokenStep2() {
+      const tokenVal = parseInt(document.getElementById('patient-token-input').value, 10);
+      const errEl = document.getElementById('patient-step2-error');
+      errEl.classList.add('hidden');
+
+      if (!tokenVal || tokenVal < 1) {
+        errEl.textContent = "Please enter a valid Token Number.";
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/clinic/${encodeURIComponent(selectedClinicCode)}/token/${tokenVal}`);
+        if (!res.ok) {
+          const err = await res.json();
+          errEl.textContent = err.detail || "Token not found in this clinic.";
+          errEl.classList.remove('hidden');
+          return;
+        }
+        const data = await res.json();
+        selectedTokenNumber = tokenVal;
+        patientTokenData = data.patient_token;
+        patientClinicData = data.clinic;
+        showPatientStep3();
+      } catch (e) {
+        errEl.textContent = "Could not verify token.";
+        errEl.classList.remove('hidden');
+      }
+    }
+
+    function backToPatientStep2() {
+      if (patientClinicData) {
+        showPatientStep2();
+      } else {
+        backToPatientStep1();
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // PATIENT PORTAL: STEP 3 (PERSONAL LIVE QUEUE & COUNTER DETAILS)
+    // ---------------------------------------------------------------------
+    function showPatientStep3() {
+      patientStep = 3;
+      document.getElementById('patient-step-1').classList.add('hidden');
+      document.getElementById('patient-step-2').classList.add('hidden');
+      document.getElementById('patient-step-3').classList.remove('hidden');
+      renderPatientStep3();
+    }
+
+    async function pollPatientStep3() {
+      if (activePortal !== 'patient' || patientStep !== 3 || !selectedClinicCode || !selectedTokenNumber) return;
+      try {
+        const res = await fetch(`/api/clinic/${encodeURIComponent(selectedClinicCode)}/token/${selectedTokenNumber}`);
+        if (res.ok) {
+          const data = await res.json();
+          patientTokenData = data.patient_token;
+          patientClinicData = data.clinic;
+          renderPatientStep3();
+        }
+      } catch (e) {}
+    }
+
+    function renderPatientStep3() {
+      if (!patientClinicData || !patientTokenData) return;
+
+      document.getElementById('p3-clinic-code').textContent = patientClinicData.clinic_code;
+      document.getElementById('p3-clinic-name').textContent = patientClinicData.clinic_name;
+      document.getElementById('p3-doctor-name').textContent = `${patientClinicData.doctor_name} • ${patientClinicData.address}`;
+      document.getElementById('p3-token-badge').textContent = `TOKEN #${patientTokenData.number}`;
+      document.getElementById('p3-elapsed-badge').textContent = `Ongoing Visit: ${patientClinicData.elapsed_min}m elapsed`;
+
+      // Populate Counter Registration Slip Details
+      document.getElementById('p3-detail-name').textContent = `${patientTokenData.name} (${patientTokenData.age || 'Adult'})`;
+      document.getElementById('p3-detail-phone').textContent = patientTokenData.phone || 'Not provided';
+      document.getElementById('p3-detail-vtype').textContent = patientTokenData.visit_type || 'General Checkup';
+      document.getElementById('p3-detail-time').textContent = patientTokenData.registered_at || 'Today';
+      document.getElementById('p3-detail-notes').textContent = patientTokenData.counter_notes || 'Standard OPD Consultation';
+
+      // Populate Forecast Metrics
+      const proxBanner = document.getElementById('p3-proximity-banner');
+      if (patientTokenData.status === 'ongoing') {
+        document.getElementById('p3-wait-range').textContent = "NOW IN CABIN";
+        document.getElementById('p3-come-back').textContent = "Proceed Inside";
+        document.getElementById('p3-patients-ahead').textContent = "It is currently your turn!";
+        proxBanner.classList.add('hidden');
+      } else if (patientTokenData.status === 'completed') {
+        document.getElementById('p3-wait-range').textContent = "Completed";
+        document.getElementById('p3-come-back').textContent = "Done";
+        document.getElementById('p3-patients-ahead').textContent = "Consultation completed";
+        proxBanner.classList.add('hidden');
+      } else if (patientTokenData.status === 'eliminated') {
+        document.getElementById('p3-wait-range').textContent = "Cancelled";
+        document.getElementById('p3-come-back').textContent = "--";
+        document.getElementById('p3-patients-ahead').textContent = "Removed from active queue";
+        proxBanner.classList.add('hidden');
+      } else {
+        document.getElementById('p3-wait-range').textContent = `${patientTokenData.wait_low}–${patientTokenData.wait_high} min`;
+        document.getElementById('p3-come-back').textContent = patientTokenData.come_back_at;
+        document.getElementById('p3-patients-ahead').textContent =
+          patientTokenData.patients_ahead === 0
+            ? "You are next in line!"
+            : `${patientTokenData.patients_ahead} patient(s) ahead of you`;
+        document.getElementById('p3-confidence').textContent = patientClinicData.confidence;
+
+        if (patientTokenData.patients_ahead <= 2) {
+          proxBanner.classList.remove('hidden');
+        } else {
+          proxBanner.classList.add('hidden');
+        }
+      }
+
+      // Show Incoming Automated Voice Call Banner if Staff triggered IVR for this token
+      const ivrAlert = document.getElementById('patient-ivr-alert');
+      if (patientClinicData.active_ivr_token === patientTokenData.number) {
+        ivrAlert.classList.remove('hidden');
+      } else {
+        ivrAlert.classList.add('hidden');
+      }
+
+      // Render Live Queue Stream
+      const streamEl = document.getElementById('p3-queue-stream');
+      streamEl.innerHTML = '';
+
+      patientClinicData.tokens.forEach(t => {
+        const isMe = (t.number === patientTokenData.number);
+
+        if (t.status === 'completed') {
+          streamEl.innerHTML += `
+            <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-xl px-4 py-2.5 flex items-center justify-between text-xs text-[#64748b]">
+              <span><b>Token #${t.number}</b> ${isMe ? '(YOU)' : ''} • Completed</span>
+              <span class="font-mono-code">${t.note}</span>
+            </div>`;
+        } else if (t.status === 'eliminated') {
+          streamEl.innerHTML += `
+            <div class="bg-[#fef2f2] border border-[#fecaca] rounded-xl px-4 py-2.5 flex items-center justify-between text-xs text-[#991b1b] line-through">
+              <span><b>Token #${t.number}</b> ${isMe ? '(YOU)' : ''} • Cancelled</span>
+              <span>Removed from queue</span>
+            </div>`;
+        } else if (t.status === 'ongoing') {
+          streamEl.innerHTML += `
+            <div class="bg-[#e3f5ec] border-2 border-[#2e8b57] rounded-2xl px-4 py-3.5 flex items-center justify-between shadow-sm">
+              <div class="flex items-center gap-3">
+                <span class="w-3.5 h-3.5 rounded-full bg-[#2e8b57] inline-block"></span>
+                <div>
+                  <span class="font-display font-extrabold text-sm text-[#1b5e3a] block">
+                    Token #${t.number} ${isMe ? '• YOUR TOKEN (NOW INSIDE)' : '• ONGOING CONSULTATION'}
+                  </span>
+                  <span class="text-xs text-[#246a5e]">${t.visit_type}</span>
+                </div>
+              </div>
+              <span class="font-mono-code text-xs font-bold bg-white text-[#1b5e3a] px-3 py-1 rounded-lg border border-[#2e8b57]">
+                IN CABIN
+              </span>
+            </div>`;
+
+          // Inline Emergency / Unforeseen Phrase Pop-up right after Ongoing Token
+          if (patientClinicData.emergency_active || patientClinicData.unforeseen_phrase) {
+            streamEl.innerHTML += `
+              <div class="bg-[#fff5f5] border-2 border-dashed border-[#dc2626] rounded-2xl p-4 my-2 shadow-sm">
+                ${patientClinicData.emergency_active ? `
+                  <div class="flex items-center gap-2.5 text-[#b91c1c] font-display font-extrabold text-sm">
+                    <span class="w-3.5 h-3.5 rounded-full bg-[#dc2626] blink-red-dot inline-block"></span>
+                    <span>EMERGENCY IN PROGRESS (+${patientClinicData.emergency_delay_min}m delay shift)</span>
+                  </div>` : ''}
+                ${patientClinicData.unforeseen_phrase ? `
+                  <p class="text-xs font-semibold text-[#7f1d1d] mt-1.5">
+                    <i class="fa-solid fa-bullhorn mr-1.5"></i> Clinic Update: "${patientClinicData.unforeseen_phrase}"
+                  </p>` : ''}
+              </div>`;
+          }
+        } else {
+          // Waiting / Hold Token
+          const boxClasses = isMe
+            ? "bg-[#eff6ff] border-2 border-[#1d4ed8] text-[#1e3a8a] shadow-md"
+            : "bg-white border border-[#dce8e4] text-[#162624]";
+          const labelBadge = isMe
+            ? `<span class="ml-2 font-mono-code text-[11px] bg-[#1d4ed8] text-white px-2 py-0.5 rounded">★ YOUR TOKEN</span>`
+            : '';
+
+          streamEl.innerHTML += `
+            <div class="${boxClasses} rounded-2xl px-4 py-3 flex items-center justify-between">
+              <div>
+                <div class="flex items-center flex-wrap">
+                  <span class="font-display font-bold text-sm">Token #${t.number} ${isMe ? `(${t.name})` : ''}</span>
+                  ${labelBadge}
+                </div>
+                <p class="text-xs opacity-80 mt-0.5">
+                  ${t.visit_type} • Come back by <b>${t.come_back_at}</b>
+                </p>
+              </div>
+              <div class="text-right">
+                <span class="font-mono-code text-xs font-bold px-3 py-1 rounded-lg bg-white border border-current block">
+                  ${t.wait_low}–${t.wait_high}m
+                </span>
+              </div>
+            </div>`;
+        }
+      });
+    }
+
+    function speakActiveIVR() {
+      if ('speechSynthesis' in window && patientClinicData && patientClinicData.active_ivr_token) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(
+          `Hello from ${patientClinicData.clinic_name}. Token number ${patientClinicData.active_ivr_token}, your turn is approaching. Press 1 if you are arriving, Press 2 if delayed to shift to a free buffer slot, or Press 9 to cancel your token.`
+        );
+        u.rate = 0.98;
+        window.speechSynthesis.speak(u);
+      }
+    }
+
+    async function respondIVR(digit) {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      const targetCode = activePortal === 'staff' ? staffClinicCode : selectedClinicCode;
+      const targetTok = activePortal === 'staff' ? staffClinicData.active_ivr_token : patientClinicData.active_ivr_token;
+      if (!targetCode || !targetTok) return;
+
+      await fetch(`/api/clinic/${encodeURIComponent(targetCode)}/ivr/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token_number: targetTok, digit_pressed: digit })
+      });
+
+      if (activePortal === 'patient') {
+        await pollPatientStep3();
+      } else {
+        await refreshStaffWorkspace();
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // STAFF PORTAL: AUTHENTICATION & CLINIC ONBOARDING
+    // ---------------------------------------------------------------------
+    function switchAuthTab(tab) {
+      const fLogin = document.getElementById('auth-form-login');
+      const fReg = document.getElementById('auth-form-register');
+      const tLogin = document.getElementById('auth-tab-login');
+      const tReg = document.getElementById('auth-tab-register');
+
+      if (tab === 'login') {
+        fLogin.classList.remove('hidden');
+        fReg.classList.add('hidden');
+        tLogin.className = "flex-1 py-3 text-xs font-bold uppercase tracking-wider text-[#162624] border-b-2 border-[#246a5e] bg-white";
+        tReg.className = "flex-1 py-3 text-xs font-bold uppercase tracking-wider text-[#526b67] hover:text-[#162624]";
+      } else {
+        fLogin.classList.add('hidden');
+        fReg.classList.remove('hidden');
+        tReg.className = "flex-1 py-3 text-xs font-bold uppercase tracking-wider text-[#162624] border-b-2 border-[#246a5e] bg-white";
+        tLogin.className = "flex-1 py-3 text-xs font-bold uppercase tracking-wider text-[#526b67] hover:text-[#162624]";
+      }
+    }
+
+    async function submitStaffLogin() {
+      const code = document.getElementById('staff-login-code').value.trim().toUpperCase();
+      const pin = document.getElementById('staff-login-pin').value.trim();
+      const errEl = document.getElementById('staff-login-error');
+      errEl.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/staff/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clinic_code: code, pin })
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          errEl.textContent = err.detail || "Login failed.";
+          errEl.classList.remove('hidden');
+          return;
+        }
+        const data = await res.json();
+        staffAuthenticated = true;
+        staffClinicCode = data.clinic.clinic_code;
+        staffClinicData = data.clinic;
+        document.getElementById('staff-auth-screen').classList.add('hidden');
+        document.getElementById('staff-workspace').classList.remove('hidden');
+        renderStaffWorkspace();
+      } catch (e) {
+        errEl.textContent = "Network error while signing in.";
+        errEl.classList.remove('hidden');
+      }
+    }
+
+    async function submitCreateClinic() {
+      const code = document.getElementById('reg-clinic-code').value.trim().toUpperCase();
+      const pin = document.getElementById('reg-clinic-pin').value.trim() || '1234';
+      const name = document.getElementById('reg-clinic-name').value.trim();
+      const doc = document.getElementById('reg-doctor-name').value.trim();
+      const spec = document.getElementById('reg-specialty').value.trim();
+      const errEl = document.getElementById('staff-reg-error');
+      errEl.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/staff/register-clinic', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clinic_code: code,
+            clinic_name: name,
+            doctor_name: doc,
+            specialty: spec,
+            pin
+          })
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          errEl.textContent = err.detail || "Could not create clinic.";
+          errEl.classList.remove('hidden');
+          return;
+        }
+        const data = await res.json();
+        staffAuthenticated = true;
+        staffClinicCode = data.clinic.clinic_code;
+        staffClinicData = data.clinic;
+        document.getElementById('staff-auth-screen').classList.add('hidden');
+        document.getElementById('staff-workspace').classList.remove('hidden');
+        renderStaffWorkspace();
+      } catch (e) {
+        errEl.textContent = "Error registering clinic.";
+        errEl.classList.remove('hidden');
+      }
+    }
+
+    function staffLogout() {
+      staffAuthenticated = false;
+      document.getElementById('staff-workspace').classList.add('hidden');
+      document.getElementById('staff-auth-screen').classList.remove('hidden');
+    }
+
+    // ---------------------------------------------------------------------
+    // STAFF PORTAL: WORKSPACE ACTIONS
+    // ---------------------------------------------------------------------
+    async function refreshStaffWorkspace() {
+      if (!staffAuthenticated || !staffClinicCode) return;
+      try {
+        const res = await fetch(`/api/clinic/${encodeURIComponent(staffClinicCode)}`);
+        if (res.ok) {
+          staffClinicData = await res.json();
+          renderStaffWorkspace();
+        }
+      } catch (e) {}
+    }
+
+    function renderStaffWorkspace() {
+      if (!staffClinicData) return;
+
+      document.getElementById('sw-clinic-code').textContent = staffClinicData.clinic_code;
+      document.getElementById('sw-clinic-name').textContent = staffClinicData.clinic_name;
+      document.getElementById('sw-doctor-name').textContent = `${staffClinicData.doctor_name} • ${staffClinicData.specialty}`;
+
+      document.getElementById('sw-p25').textContent = `P25: ${staffClinicData.p25_min}m`;
+      document.getElementById('sw-p50').textContent = `Median: ${staffClinicData.median_min}m`;
+      document.getElementById('sw-p75').textContent = `P75: ${staffClinicData.p75_min}m`;
+      document.getElementById('sw-ivr-status').textContent = staffClinicData.last_ivr_action;
+
+      // Emergency Button
+      const emBtn = document.getElementById('sw-btn-em');
+      if (staffClinicData.emergency_active) {
         emBtn.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> Resolve Emergency`;
         emBtn.className = "flex-1 bg-[#1b5e3a] hover:bg-[#14472c] text-white font-display font-bold text-sm py-2.5 px-3 rounded-xl transition";
       } else {
@@ -502,303 +1192,237 @@
         emBtn.className = "flex-1 bg-[#c94a4a] hover:bg-[#a83838] text-white font-display font-bold text-sm py-2.5 px-3 rounded-xl transition";
       }
 
-      // Update My Token Forecast Card
-      document.getElementById('ui-my-token-badge').textContent = `TOKEN #${myTokenNumber}`;
-      const myTokenObj = currentState.tokens.find(t => t.number === myTokenNumber);
-      const alarmBanner = document.getElementById('ui-proximity-alarm');
-
-      if (myTokenObj) {
-        document.getElementById('ui-my-visit-type').textContent = myTokenObj.visit_type || 'General Checkup';
-        if (myTokenObj.status === 'ongoing') {
-          document.getElementById('ui-wait-range').textContent = "NOW INSIDE";
-          document.getElementById('ui-come-back').textContent = "Cabin #1";
-          alarmBanner.classList.add('hidden');
-        } else if (myTokenObj.status === 'completed') {
-          document.getElementById('ui-wait-range').textContent = "Completed";
-          document.getElementById('ui-come-back').textContent = "Done";
-          alarmBanner.classList.add('hidden');
-        } else if (myTokenObj.status === 'eliminated') {
-          document.getElementById('ui-wait-range').textContent = "Eliminated";
-          document.getElementById('ui-come-back').textContent = "--";
-          alarmBanner.classList.add('hidden');
-        } else {
-          document.getElementById('ui-wait-range').textContent = `${myTokenObj.wait_low}–${myTokenObj.wait_high} min`;
-          document.getElementById('ui-come-back').textContent = myTokenObj.come_back_at;
-          document.getElementById('ui-confidence').innerHTML = `<i class="fa-solid fa-shield-halved text-[#2e6f65] mr-1"></i> ${currentState.confidence}`;
-          if (myTokenObj.patients_ahead <= 2) {
-            alarmBanner.classList.remove('hidden');
-          } else {
-            alarmBanner.classList.add('hidden');
-          }
-        }
-      }
-
-      // Render Queue List
-      const listEl = document.getElementById('ui-queue-list');
-      listEl.innerHTML = '';
-
-      currentState.tokens.forEach(t => {
-        const isMe = (t.number === myTokenNumber);
-
-        if (t.status === 'completed') {
-          listEl.innerHTML += `
-            <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-lg px-3.5 py-2 flex items-center justify-between text-xs text-[#64748b]">
-              <span><b>#${t.number} ${t.name || ''}</b> • ${t.visit_type || ''}</span>
-              <span class="font-mono-code">${t.note}</span>
-            </div>`;
+      // Render Roster Table
+      const tbody = document.getElementById('sw-roster-tbody');
+      tbody.innerHTML = staffClinicData.tokens.map(t => {
+        let statusBadge = '';
+        if (t.status === 'ongoing') {
+          statusBadge = `<span class="bg-[#e3f5ec] text-[#1b5e3a] border border-[#2e8b57] font-mono-code text-[11px] font-bold px-2.5 py-0.5 rounded">● ONGOING</span>`;
+        } else if (t.status === 'completed') {
+          statusBadge = `<span class="bg-gray-100 text-gray-500 font-mono-code text-[11px] px-2 py-0.5 rounded">COMPLETED</span>`;
         } else if (t.status === 'eliminated') {
-          listEl.innerHTML += `
-            <div class="bg-[#fef2f2] border border-[#fecaca] rounded-lg px-3.5 py-2 flex items-center justify-between text-xs text-[#991b1b] line-through">
-              <span><b>#${t.number} ${t.name || ''}</b> • Eliminated via IVR</span>
-              <span>Option B (Press 9)</span>
-            </div>`;
-        } else if (t.status === 'ongoing') {
-          listEl.innerHTML += `
-            <div class="bg-[#e3f5ec] border-2 border-[#2e8b57] rounded-xl px-4 py-3 flex items-center justify-between shadow-sm">
-              <div class="flex items-center gap-2.5">
-                <span class="w-3 h-3 rounded-full bg-[#2e8b57] inline-block"></span>
-                <div>
-                  <span class="font-display font-bold text-sm text-[#1b5e3a] block">#${t.number} ${t.name || ''} • ONGOING (Green Mark)</span>
-                  <span class="text-[11px] text-[#2e6f65]">${t.visit_type || 'General Checkup'}</span>
-                </div>
-              </div>
-              <span class="font-mono-code text-xs font-bold bg-white text-[#1b5e3a] px-2.5 py-1 rounded border border-[#2e8b57]">In Cabin</span>
-            </div>`;
-
-          if (currentState.emergency_active || currentState.unforeseen_phrase) {
-            listEl.innerHTML += `
-              <div class="bg-[#fff5f5] border-2 border-dashed border-[#d9534f] rounded-xl p-3.5 my-2 shadow-sm">
-                ${currentState.emergency_active ? `
-                  <div class="flex items-center gap-2 text-[#b52b27] font-display font-bold text-sm">
-                    <span class="w-3 h-3 rounded-full bg-[#dc2626] blink-red-dot inline-block"></span>
-                    <span>EMERGENCY IN PROGRESS (+${currentState.emergency_delay_min}m shift)</span>
-                  </div>` : ''}
-                ${currentState.unforeseen_phrase ? `
-                  <p class="text-xs font-semibold text-[#7a2e2e] mt-1">
-                    <i class="fa-solid fa-bullhorn mr-1"></i> Unforeseen Phrase: "${currentState.unforeseen_phrase}"
-                  </p>` : ''}
-              </div>`;
-          }
+          statusBadge = `<span class="bg-[#fef2f2] text-[#991b1b] font-mono-code text-[11px] px-2 py-0.5 rounded">CANCELLED</span>`;
         } else {
-          const cardStyle = isMe
-            ? "bg-[#eff6ff] border-2 border-[#1d4ed8] text-[#1e3a8a] shadow-sm"
-            : "bg-white border border-[#dce8e4] text-[#1e2d2b]";
-          const badgeText = isMe ? `• YOUR TOKEN (Blue Mark)` : `• ${t.visit_type || 'Visit'}`;
-
-          listEl.innerHTML += `
-            <div class="${cardStyle} rounded-xl px-4 py-2.5 flex items-center justify-between">
-              <div>
-                <span class="font-display font-bold text-sm">#${t.number} ${t.name || ''} ${badgeText}</span>
-                <p class="text-xs opacity-80 mt-0.5">Come back at <b>${t.come_back_at}</b> • ${t.note}</p>
-              </div>
-              <div class="text-right">
-                <span class="font-mono-code text-xs font-bold px-2.5 py-1 rounded bg-white border border-current block">
-                  ${t.wait_low}–${t.wait_high}m
-                </span>
-              </div>
-            </div>`;
+          statusBadge = `<span class="bg-[#eff6ff] text-[#1d4ed8] border border-[#93c5fd] font-mono-code text-[11px] font-bold px-2.5 py-0.5 rounded">WAITING</span>`;
         }
-      });
 
-      // Render SMS Outbox
-      const smsEl = document.getElementById('ui-sms-list');
-      if (currentState.sms_outbox && currentState.sms_outbox.length) {
-        smsEl.innerHTML = currentState.sms_outbox.map(s => `
-          <div class="bg-[#f6faf8] border border-[#dce8e4] rounded-lg px-3 py-1.5 flex items-start justify-between gap-2">
-            <div>
-              <span class="font-mono-code font-bold text-[#2e6f65]">${s.to}:</span>
-              <span class="text-[#334155] ml-1">${s.message}</span>
-            </div>
-            <span class="font-mono-code text-[10px] text-[#64748b] whitespace-nowrap">${s.time}</span>
-          </div>
-        `).join('');
+        const waitText = t.status === 'waiting' || t.status === 'hold'
+          ? `<b>${t.wait_low}–${t.wait_high}m</b> (by ${t.come_back_at})`
+          : t.note;
+
+        const actionBtns = (t.status === 'waiting' || t.status === 'hold')
+          ? `
+            <div class="flex items-center justify-end gap-1.5">
+              <button onclick="staffTriggerIVR(${t.number})" class="bg-[#162624] hover:bg-[#28423e] text-white text-[11px] font-semibold px-2.5 py-1 rounded-lg transition" title="Call Patient via Automated IVR">
+                <i class="fa-solid fa-phone-volume text-[#84c5b8] mr-1"></i> Call IVR
+              </button>
+              <button onclick="staffQuickShift(${t.number}, '2')" class="bg-[#fef6e6] hover:bg-[#fce8c3] text-[#8a5a00] border border-[#d99b26] text-[11px] font-semibold px-2 py-1 rounded-lg" title="Option A: Shift to Free Slot">
+                Shift Slot
+              </button>
+              <button onclick="staffQuickShift(${t.number}, '9')" class="bg-[#fdecec] hover:bg-[#f9dada] text-[#9e2a2b] border border-[#d97777] text-[11px] font-semibold px-2 py-1 rounded-lg" title="Option B: Eliminate Token">
+                ✕
+              </button>
+            </div>`
+          : `<span class="text-[11px] text-gray-400">--</span>`;
+
+        return `
+          <tr class="hover:bg-[#f9fbfa]">
+            <td class="py-3 px-3 font-mono-code font-bold text-sm text-[#162624]">#${t.number}</td>
+            <td class="py-3 px-3">
+              <p class="font-bold text-[#162624]">${t.name} <span class="font-normal text-[#64748b]">(${t.age || ''})</span></p>
+              <p class="text-[11px] text-[#526b67]">${t.counter_notes || ''} • <span class="font-mono-code">${t.phone || ''}</span></p>
+            </td>
+            <td class="py-3 px-3 text-[#246a5e] font-medium">${t.visit_type}</td>
+            <td class="py-3 px-3 font-mono-code text-xs">${waitText}</td>
+            <td class="py-3 px-3">${statusBadge}</td>
+            <td class="py-3 px-3 text-right">${actionBtns}</td>
+          </tr>
+        `;
+      }).join('');
+
+      // SMS Log
+      const smsEl = document.getElementById('sw-sms-list');
+      smsEl.innerHTML = (staffClinicData.sms_outbox || []).map(s => `
+        <div class="bg-[#f6faf8] border border-[#dce8e4] rounded-lg px-3 py-1.5 flex justify-between gap-2">
+          <span><b class="font-mono-code text-[#246a5e]">${s.to}:</b> ${s.message}</span>
+          <span class="font-mono-code text-[10px] text-[#64748b] whitespace-nowrap">${s.time}</span>
+        </div>
+      `).join('');
+
+      // KPIs
+      const k = staffClinicData.pilot_kpis;
+      document.getElementById('sw-kpi-dwell').textContent = `${k.clinicq_dwell_min}m`;
+      document.getElementById('sw-kpi-crowd').textContent = `${k.clinicq_peak_crowd} pax`;
+      document.getElementById('sw-kpi-err').textContent = `±${k.prediction_error_min}m`;
+    }
+
+    async function issueCounterToken() {
+      const name = document.getElementById('counter-name').value.trim();
+      const age = document.getElementById('counter-age').value.trim() || "Adult";
+      const phone = document.getElementById('counter-phone').value.trim() || "+91 98765-00000";
+      const vtype = document.getElementById('counter-vtype').value;
+      const notes = document.getElementById('counter-notes').value.trim() || "Checked in at Reception Desk";
+
+      if (!name) {
+        alert("Please enter the patient's name at the counter.");
+        return;
       }
 
-      // Show or Hide IVR Modal
-      const ivrModal = document.getElementById('ivr-modal');
-      if (currentState.active_ivr_token) {
-        ivrModal.classList.remove('hidden');
-        document.getElementById('ivr-modal-title').textContent =
-          `Automated Call Ringing for Token #${currentState.active_ivr_token}...`;
-      } else {
-        ivrModal.classList.add('hidden');
+      const res = await fetch(`/api/clinic/${encodeURIComponent(staffClinicCode)}/register-token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          age,
+          phone,
+          visit_type: vtype,
+          counter_notes: notes
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        staffClinicData = data.clinic;
+        renderStaffWorkspace();
+
+        const slipBox = document.getElementById('issued-slip-box');
+        document.getElementById('issued-slip-num').textContent = `TOKEN #${data.issued_token.number}`;
+        document.getElementById('issued-slip-desc').textContent =
+          `Issued to ${data.issued_token.name}. Patient can now enter Clinic ID ${staffClinicCode} & Token #${data.issued_token.number} on their phone.`;
+        slipBox.classList.remove('hidden');
+
+        document.getElementById('counter-name').value = '';
+        document.getElementById('counter-age').value = '';
+        document.getElementById('counter-phone').value = '';
+        document.getElementById('counter-notes').value = '';
+        playChime();
       }
-
-      // Update Pilot KPIs
-      const kpis = currentState.pilot_kpis;
-      document.getElementById('kpi-dwell-clinicq').textContent = `${kpis.clinicq_dwell_min} min`;
-      document.getElementById('kpi-dwell-trad').textContent = `Paper Register: ${kpis.traditional_dwell_min} min`;
-      document.getElementById('kpi-crowd-clinicq').textContent = `${kpis.clinicq_peak_crowd} patients`;
-      document.getElementById('kpi-crowd-trad').textContent = `Paper Register: ${kpis.traditional_peak_crowd} patients`;
-      document.getElementById('kpi-error').textContent = `±${kpis.prediction_error_min} min`;
-      document.getElementById('kpi-sim-mode').textContent = kpis.last_run_mode;
     }
 
-    // INTERACTION HANDLERS
-    async function advanceQueue() {
-      const dur = parseFloat(document.getElementById('input-visit-duration').value) || 10;
-      const winSize = parseInt(document.getElementById('select-window-size').value, 10) || 5;
-      const res = await fetch('/api/next', {
+    async function staffNextToken() {
+      const dur = parseFloat(document.getElementById('sw-visit-dur').value) || 10;
+      const win = parseInt(document.getElementById('sw-window').value, 10) || 5;
+      const res = await fetch(`/api/clinic/${encodeURIComponent(staffClinicCode)}/next`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ completed_duration_min: dur, window_size: winSize })
+        body: JSON.stringify({ completed_duration_min: dur, window_size: win })
       });
-      currentState = await res.json();
-      renderUI();
+      staffClinicData = await res.json();
+      renderStaffWorkspace();
     }
 
-    async function updateWindowSize() {
-      const winSize = parseInt(document.getElementById('select-window-size').value, 10) || 5;
-      const res = await fetch('/api/window', {
+    async function staffChangeWindow() {
+      const win = parseInt(document.getElementById('sw-window').value, 10) || 5;
+      const res = await fetch(`/api/clinic/${encodeURIComponent(staffClinicCode)}/window`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ window_size: winSize })
+        body: JSON.stringify({ window_size: win })
       });
-      currentState = await res.json();
-      renderUI();
+      staffClinicData = await res.json();
+      renderStaffWorkspace();
     }
 
-    async function simulateDoctorLate() {
-      const res = await fetch('/api/elapsed/shift', {
+    async function staffAddLate() {
+      const res = await fetch(`/api/clinic/${encodeURIComponent(staffClinicCode)}/elapsed`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ add_minutes: 5.0 })
       });
-      currentState = await res.json();
-      renderUI();
+      staffClinicData = await res.json();
+      renderStaffWorkspace();
     }
 
-    async function toggleEmergency() {
-      const delay = parseFloat(document.getElementById('input-emergency-delay').value) || 15;
-      const phrase = document.getElementById('input-custom-phrase').value;
-      const nextActive = !currentState.emergency_active;
-      const res = await fetch('/api/emergency', {
+    async function staffToggleEmergency() {
+      const delay = parseFloat(document.getElementById('sw-em-delay').value) || 15;
+      const phrase = document.getElementById('sw-phrase-input').value;
+      const nextState = !staffClinicData.emergency_active;
+      const res = await fetch(`/api/clinic/${encodeURIComponent(staffClinicCode)}/emergency`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          active: nextActive,
+          active: nextState,
           delay_minutes: delay,
-          custom_phrase: nextActive ? phrase : ""
+          custom_phrase: nextState ? phrase : ""
         })
       });
-      currentState = await res.json();
-      renderUI();
+      staffClinicData = await res.json();
+      renderStaffWorkspace();
     }
 
-    function setQuickPhrase(text, mins) {
-      document.getElementById('input-custom-phrase').value = text;
-      document.getElementById('input-phrase-delay').value = mins;
-      postCustomPhrase();
+    function staffQuickPhrase(text, delay) {
+      document.getElementById('sw-phrase-input').value = text;
+      document.getElementById('sw-phrase-delay').value = delay;
+      staffPostPhrase();
     }
 
-    async function postCustomPhrase() {
-      const phrase = document.getElementById('input-custom-phrase').value;
-      const delay = parseFloat(document.getElementById('input-phrase-delay').value) || 12;
-      const res = await fetch('/api/phrase', {
+    async function staffPostPhrase() {
+      const phrase = document.getElementById('sw-phrase-input').value;
+      const delay = parseFloat(document.getElementById('sw-phrase-delay').value) || 12;
+      const res = await fetch(`/api/clinic/${encodeURIComponent(staffClinicCode)}/phrase`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phrase, delay_minutes: delay })
       });
-      currentState = await res.json();
-      renderUI();
+      staffClinicData = await res.json();
+      renderStaffWorkspace();
     }
 
-    async function clearPhrase() {
-      document.getElementById('input-custom-phrase').value = '';
-      const res = await fetch('/api/phrase', {
+    async function staffClearPhrase() {
+      document.getElementById('sw-phrase-input').value = '';
+      const res = await fetch(`/api/clinic/${encodeURIComponent(staffClinicCode)}/phrase`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phrase: '', delay_minutes: 0 })
       });
-      currentState = await res.json();
-      renderUI();
+      staffClinicData = await res.json();
+      renderStaffWorkspace();
     }
 
-    async function joinNewToken() {
-      const code = document.getElementById('input-clinic-code').value;
-      const name = document.getElementById('input-patient-name').value || "Walk-in Patient";
-      const vtype = document.getElementById('input-visit-type').value;
-      const res = await fetch('/api/token/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clinic_code: code, patient_name: name, visit_type: vtype, phone_last4: "4812" })
-      });
-      if (!res.ok) {
-        alert("Invalid Clinic Unique Code! Please enter CLINIC-101.");
-        return;
-      }
-      const data = await res.json();
-      myTokenNumber = data.new_token;
-      currentState = data.state;
-      document.getElementById('input-patient-name').value = '';
-      playAlarmSound();
-      renderUI();
-    }
-
-    async function triggerIVRCall() {
-      const tokenNum = parseInt(document.getElementById('select-ivr-token').value, 10);
-      const res = await fetch('/api/ivr/trigger', {
+    async function staffTriggerIVR(tokenNum) {
+      const res = await fetch(`/api/clinic/${encodeURIComponent(staffClinicCode)}/ivr/trigger`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token_number: tokenNum })
       });
-      currentState = await res.json();
-      renderUI();
-      speakIVRPrompt();
+      staffClinicData = await res.json();
+      renderStaffWorkspace();
+      playChime();
     }
 
-    function speakIVRPrompt() {
-      if ('speechSynthesis' in window && currentState && currentState.active_ivr_token) {
-        window.speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(
-          `Hello from Clinic Q. Token number ${currentState.active_ivr_token}, your consultation turn is approaching. Are you coming to the clinic? Press 2 if delayed to shift to a free buffer slot, or press 9 to eliminate your token.`
-        );
-        msg.rate = 0.98;
-        window.speechSynthesis.speak(msg);
-      }
-    }
-
-    async function submitIVRKey(digit) {
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-      const res = await fetch('/api/ivr/respond', {
+    async function staffQuickShift(tokenNum, digit) {
+      const res = await fetch(`/api/clinic/${encodeURIComponent(staffClinicCode)}/ivr/respond`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          token_number: currentState.active_ivr_token,
-          digit_pressed: digit
-        })
+        body: JSON.stringify({ token_number: tokenNum, digit_pressed: digit })
       });
-      currentState = await res.json();
-      renderUI();
+      staffClinicData = await res.json();
+      renderStaffWorkspace();
     }
 
-    async function runSimulator() {
-      const res = await fetch('/api/simulate', { method: 'POST' });
-      currentState = await res.json();
-      renderUI();
+    async function staffRunSimulator() {
+      const res = await fetch(`/api/clinic/${encodeURIComponent(staffClinicCode)}/simulate`, { method: 'POST' });
+      staffClinicData = await res.json();
+      renderStaffWorkspace();
     }
 
-    async function resetDemo() {
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-      const res = await fetch('/api/reset', { method: 'POST' });
-      currentState = await res.json();
-      myTokenNumber = 4;
-      renderUI();
+    // ---------------------------------------------------------------------
+    // QR POSTER MODAL & AUDIO CHIME
+    // ---------------------------------------------------------------------
+    function openQRPosterModal() {
+      if (!staffClinicData) return;
+      const url = `${window.location.origin}/?clinic=${encodeURIComponent(staffClinicData.clinic_code)}`;
+      document.getElementById('qr-modal-clinic-name').textContent = staffClinicData.clinic_name;
+      document.getElementById('qr-modal-doc-name').textContent = staffClinicData.doctor_name;
+      document.getElementById('qr-modal-code').textContent = staffClinicData.clinic_code;
+      document.getElementById('qr-poster-img').src =
+        `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(url)}`;
+      document.getElementById('qr-modal').classList.remove('hidden');
     }
 
-    function toggleQRModal(show) {
-      const modal = document.getElementById('qr-modal');
-      if (show) {
-        const patientUrl = `${window.location.origin}/?mode=patient`;
-        document.getElementById('qr-poster-img').src =
-          `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(patientUrl)}`;
-        modal.classList.remove('hidden');
-      } else {
-        modal.classList.add('hidden');
-      }
+    function closeQRPosterModal() {
+      document.getElementById('qr-modal').classList.add('hidden');
     }
 
-    function playAlarmSound() {
+    function playChime() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator();
@@ -814,50 +1438,33 @@
       } catch (e) {}
     }
 
-    function setViewMode(mode) {
-      const pPatient = document.getElementById('panel-patient');
-      const pStaff = document.getElementById('panel-staff');
-      const pPilot = document.getElementById('panel-pilot');
+    // ---------------------------------------------------------------------
+    // STARTUP: CHECK IF PATIENT ARRIVED VIA CLINIC QR CODE (?clinic=...)
+    // ---------------------------------------------------------------------
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadPublicClinicsList();
+      const params = new URLSearchParams(window.location.search);
+      const qrClinic = params.get('clinic');
+      const qrToken = params.get('token');
 
-      ['split', 'patient', 'staff', 'pilot'].forEach(m => {
-        const btn = document.getElementById(`tab-${m}`);
-        btn.className = (m === mode)
-          ? "px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#84c5b8] text-[#1e2d2b] transition"
-          : "px-3 py-1.5 rounded-lg text-xs font-semibold text-[#cbe5df] hover:bg-[#314945] transition";
-      });
-
-      if (mode === 'split') {
-        pPatient.classList.remove('hidden');
-        pStaff.classList.remove('hidden');
-        pPilot.classList.remove('hidden');
-        pPatient.className = "lg:col-span-5 bg-white rounded-2xl border border-[#dce8e4] shadow-sm overflow-hidden";
-        pStaff.className = "lg:col-span-7 space-y-5";
-      } else if (mode === 'patient') {
-        pPatient.classList.remove('hidden');
-        pStaff.classList.add('hidden');
-        pPilot.classList.add('hidden');
-        pPatient.className = "lg:col-span-6 lg:col-start-4 bg-white rounded-2xl border border-[#dce8e4] shadow-sm overflow-hidden";
-      } else if (mode === 'staff') {
-        pPatient.classList.add('hidden');
-        pStaff.classList.remove('hidden');
-        pPilot.classList.add('hidden');
-        pStaff.className = "lg:col-span-8 lg:col-start-3 space-y-5";
-      } else if (mode === 'pilot') {
-        pPatient.classList.add('hidden');
-        pStaff.classList.add('hidden');
-        pPilot.classList.remove('hidden');
+      if (qrClinic) {
+        document.getElementById('patient-clinic-code-input').value = qrClinic.toUpperCase();
+        await verifyClinicStep1();
+        if (qrToken && patientStep === 2) {
+          document.getElementById('patient-token-input').value = qrToken;
+          await verifyTokenStep2();
+        }
       }
-    }
 
-    // Check if opened via QR scan (?mode=patient)
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('mode') === 'patient') {
-      setViewMode('patient');
-    }
-
-    fetchState();
-    // Auto-poll every 2.5 seconds so phone and laptop stay synced live
-    setInterval(fetchState, 2500);
+      // Live background sync
+      setInterval(() => {
+        if (activePortal === 'patient' && patientStep === 3) {
+          pollPatientStep3();
+        } else if (activePortal === 'staff' && staffAuthenticated) {
+          refreshStaffWorkspace();
+        }
+      }, 2500);
+    });
   </script>
 </body>
 </html>
